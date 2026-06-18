@@ -147,7 +147,9 @@ The Pause screen expands these icons into full text and also shows:
 
 ## Developer Note
 
-This game concept, design, and logic were created by **Mark Morgan**.
+**Meat-eor Blaster** was built and developed by **Mark Morgan** using AI-assisted implementation.
+
+The game concept, design direction, gameplay rules, balance decisions, and logic were created by **Mark Morgan**.
 
 It is dedicated to his son, **Zaqxen Rei**, the pilot of the awkward, unpredictable UFO.
 
@@ -159,7 +161,7 @@ The game is designed to work on small mobile screens, including iPhone SE-sized 
 
 - Gameplay is no-scroll so taps and multi-touch feel responsive.
 - Final result is no-scroll and compact for screenshots.
-- Help, Pause, Workshop, and other information screens can scroll when needed.
+- Help, Pause, Workshop, About, and other information screens can scroll when needed on mobile.
 - The game supports portrait and landscape.
 - It pauses on resize/rotation so the player can resume safely.
 
