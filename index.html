@@ -119,6 +119,39 @@ button:disabled {
   cursor: not-allowed;
 }
 
+.hud-icon { display: inline-block; }
+.shop-card { padding-top: 0; }
+.shop-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 4px 9px;
+  margin: -1px 0 10px;
+  background: linear-gradient(to bottom, rgba(5,17,22,.98), rgba(5,17,22,.92));
+  border-bottom: 1px solid rgba(255,178,58,.28);
+  backdrop-filter: blur(5px);
+}
+.shop-credit { color: var(--gold); font-weight: 900; }
+.shop-bar .button-row { margin-top: 0; }
+.bomb-warning { border-color: rgba(255,84,56,.8); box-shadow: 0 0 35px rgba(255,84,56,.24); }
+@media (max-width: 430px) {
+  #hud { gap: 4px; left: 5px; right: 5px; align-items: flex-start; }
+  .stat-row { gap: 3px; }
+  .pill.hud-stat { padding: 5px 6px; font-size: 11px; }
+  .hud-label { display: none; }
+  #shopBtn, #pauseBtn, #nextBtn { padding: 6px 8px; font-size: 12px; }
+  #message { top: 72px; }
+  .shop-bar { padding: 8px 2px; gap: 5px; }
+  .shop-bar h1 { width: 100%; font-size: 20px; margin: 0; }
+  .shop-credit { font-size: 13px; }
+}
+
+
 #message {
   position: absolute;
   left: 50%;
@@ -786,6 +819,171 @@ button:disabled {
   .card { padding: 14px; }
   .card h1 { font-size: 24px; }
 }
+
+/* Gameplay HUD is icon-only to fit mobile in one line. */
+#hud .stat-row:first-child {
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+#hud .pill.hud-stat {
+  padding: 6px 7px;
+  white-space: nowrap;
+}
+
+#hud .hud-label {
+  display: none;
+}
+
+.pause-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 9px;
+  margin: 14px 0;
+}
+
+.pause-stat-grid div {
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 14px;
+  padding: 10px;
+  text-align: left;
+}
+
+.pause-stat-grid strong {
+  color: var(--gold);
+  display: block;
+  font-size: 20px;
+}
+
+@media (max-width: 430px) {
+  #hud .stat-row:first-child {
+    flex: 1 1 auto;
+    overflow: hidden;
+  }
+
+  #hud .pill.hud-stat {
+    padding: 5px 5px;
+    font-size: 11px;
+  }
+
+  .pause-stat-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+
+/* One compact grouped HUD pill with separators. */
+.hud-combo-row {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.hud-combo {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  overflow: hidden;
+  padding: 6px 8px;
+}
+
+.hud-combo .hud-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  white-space: nowrap;
+}
+
+.hud-sep {
+  width: 1px;
+  height: 16px;
+  background: rgba(255,255,255,.24);
+  display: inline-block;
+}
+
+@media (max-width: 430px) {
+  .hud-combo {
+    gap: 3px;
+    padding: 5px 6px;
+    font-size: 11px;
+  }
+
+  .hud-sep {
+    height: 13px;
+  }
+}
+
+
+.falling.bomb {
+  z-index: 20;
+}
+
+.ufo {
+  z-index: 18;
+}
+
+
+body.hard-mode {
+  background: radial-gradient(circle at top, #4a1014, #19070b 48%, #050102);
+}
+
+body.hard-mode .pill,
+body.hard-mode button,
+body.hard-mode .card,
+body.hard-mode .shop-item,
+body.hard-mode .preview {
+  border-color: rgba(255,84,56,.62);
+}
+
+body.hard-mode .card h1,
+body.hard-mode .card h2,
+body.hard-mode .shop-credit,
+body.hard-mode .final-score-grid strong,
+body.hard-mode .pause-stat-grid strong {
+  color: #ff6a4d;
+}
+
+body.hard-mode #ground {
+  background: linear-gradient(to top, #1d0909, #451414 60%, #682020);
+  border-top-color: #ff5438;
+}
+
+body.hard-mode .pill,
+body.hard-mode button {
+  box-shadow: 0 0 16px rgba(255,84,56,.18);
+}
+
+
+.rocket {
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+}
+
+.rocket .body {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: translate(-50%, -50%) rotate(45deg);
+  transform-origin: 50% 50%;
+}
+
+
+.preview-explosion:empty::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border: 3px solid #ffffff;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 14px rgba(255,255,255,.9), inset 0 0 12px rgba(255,255,255,.35);
+  animation: previewRing var(--dur) ease-out infinite;
+}
+
 </style>
 </head>
 
@@ -794,15 +992,21 @@ button:disabled {
   <div id="starfield"></div>
 
   <div id="hud">
-    <div class="stat-row">
-      <div class="pill">Lvl <span id="level">1</span></div>
-      <div class="pill">Run <span id="cycle">1</span></div>
-      <div class="pill">Lives <span id="lives">5</span></div>
-      <div class="pill">Credits <span id="coins">0</span></div>
-      <div class="pill"><span id="cleared">0</span>/<span id="total">8</span></div>
+    <div class="stat-row hud-combo-row">
+      <div class="pill hud-combo">
+        <span class="hud-stat"><span class="hud-icon">⭐</span><span class="hud-label">Lvl</span><span id="level">1</span></span>
+        <span class="hud-sep"></span>
+        <span class="hud-stat"><span class="hud-icon">🔁</span><span class="hud-label">Run</span><span id="cycle">1</span></span>
+        <span class="hud-sep"></span>
+        <span class="hud-stat"><span class="hud-icon">❤️</span><span class="hud-label">Lives</span><span id="lives">5</span></span>
+        <span class="hud-sep"></span>
+        <span class="hud-stat"><span class="hud-icon">🪙</span><span class="hud-label">Credits</span><span id="coins">0</span></span>
+        <span class="hud-sep"></span>
+        <span class="hud-stat"><span class="hud-icon">🎯</span><span id="cleared">0</span>/<span id="total">8</span></span>
+      </div>
     </div>
     <div class="stat-row">
-      <button id="nextBtn" style="display:none">Next Level</button>
+      <button id="nextBtn" style="display:none"></button>
       <button id="shopBtn">Shop</button>
       <button id="pauseBtn">Pause</button>
     </div>
@@ -817,12 +1021,13 @@ button:disabled {
     <div class="card">
       <h1>🥩 Meat-eor Blaster</h1>
       <p>
-        Tap meat-eors and meteors before they land. Do not tap bombs after the difficulty resets.
+        Tap meat-eors and meteors before they land. Choose Normal or Hard Mode at the start.
         Bonus UFOs appear after half of some levels. The UFO is piloted by <strong>Zaqxen Rei</strong>,
         so it flies awkwardly, unstable, and random.
       </p>
       <div class="button-row">
-        <button onclick="startGame()">Start Game</button>
+        <button onclick="startGame(false)">Normal Mode</button>
+        <button onclick="startGame(true)">Hard Mode</button>
         <button onclick="showHelp()">Help & Instructions</button>
       </div>
     </div>
@@ -854,9 +1059,14 @@ const MAX_ROCKET_SIZE = 6;
 
 const explosionEffects = [
   {
+    id: "starter", name: "Starter Radius Ring", cost: 0, unlockLevel: 1, minRocketSize: 1,
+    colors: ["#ffffff"], particles: 0, distanceBonus: 0, life: 520, radiusOnly: true,
+    description: "Starter pack: an expanding white circle that shows your current blast radius."
+  },
+  {
     id: "classic", name: "Plain White Pop", cost: 20, unlockLevel: 1, minRocketSize: 1,
     colors: ["#ffffff"], particles: 12, distanceBonus: 0, life: 430,
-    description: "Simple white particle pop. Better than no explosion."
+    description: "Simple white particle pop."
   },
   {
     id: "ember", name: "Ember Grill Burst", cost: 60, unlockLevel: 3, minRocketSize: 2,
@@ -930,7 +1140,9 @@ const state = {
   running: false,
   paused: false,
   level: 1,
+  difficultyLevel: 1,
   cycle: 1,
+  hardMode: false,
   lives: 5,
   coins: 0,
   score: 0,
@@ -957,10 +1169,12 @@ const state = {
   ufoIntroPending: false,
   ufoCaught: 0,
   ufoLivesGained: 0,
+  bombImmunity: 0,
+  bombImmunitySpentCredits: 0,
   stats: { steak: 0, chicken: 0, rib: 0, meteor: 0 },
   upgrades: { rocketSize: 1, missiles: 1, trailLength: 1 },
-  ownedEffects: [],
-  selectedEffect: null,
+  ownedEffects: ["starter"],
+  selectedEffect: "starter",
   ownedTrails: ["tiny"],
   selectedTrail: "tiny",
   pointerX: window.innerWidth / 2,
@@ -976,8 +1190,37 @@ function updateUI() {
   ui.total.textContent = state.total;
 }
 
+
+function addCredits(amount) {
+  state.coins += amount;
+  const earnedBlocksBefore = Math.floor(state.bombImmunitySpentCredits / 1000);
+  state.bombImmunitySpentCredits += amount;
+  const earnedBlocksAfter = Math.floor(state.bombImmunitySpentCredits / 1000);
+  const gained = Math.max(0, earnedBlocksAfter - earnedBlocksBefore);
+  if (gained > 0) {
+    state.bombImmunity += gained;
+    showMessage("🛡️ Bomb immunity gained! +" + gained);
+  }
+}
+
+function useBombImmunity() {
+  if (state.bombImmunity <= 0 || state.coins < 1000) return false;
+
+  state.bombImmunity--;
+  state.coins = Math.max(0, state.coins - 1000);
+  state.upgrades.missiles = Math.max(1, state.upgrades.missiles - 1);
+  state.upgrades.rocketSize = Math.max(1, state.upgrades.rocketSize - 1);
+  updateUI();
+  showMessage("🛡️ Bomb immunity used! -1000 credits, Rocket Size -1, Multi-Missile -1");
+  return true;
+}
+
 function setNextButtonVisible(visible) {
-  ui.nextBtn.style.display = visible ? "inline-block" : "none";
+  ui.nextBtn.style.display = "none";
+}
+
+function setPauseButtonNormal() {
+  if (ui && ui.pauseBtn) ui.pauseBtn.textContent = "Pause";
 }
 
 function showMessage(text) {
@@ -1034,8 +1277,8 @@ function clearField() {
 }
 
 function desiredFallTime() {
-  const raw = 5.85 - state.level * 0.18 - (state.cycle - 1) * 0.2;
-  return Math.max(2.35, raw);
+  const raw = 5.85 - state.difficultyLevel * 0.18 - (state.cycle - 1) * 0.2 - (state.hardMode ? 0.42 : 0);
+  return Math.max(state.hardMode ? 1.85 : 2.35, raw);
 }
 
 function levelSpeed() {
@@ -1044,16 +1287,25 @@ function levelSpeed() {
 }
 
 function spawnInterval() {
-  return Math.max(850 - state.level * 32 - (state.cycle - 1) * 24, 360);
+  const raw = 850 - state.difficultyLevel * 32 - (state.cycle - 1) * 24 - (state.hardMode ? 90 : 0);
+  return Math.max(state.hardMode ? 280 : 360, raw);
 }
 
 function waveTotalForLevel(level) {
-  return Math.min(7 + level + Math.floor((state.cycle - 1) * 1.5), 26);
+  /*
+    Total means required meat-eor/meteor targets only.
+    Bombs are extra hazards and do not count toward this target quota.
+    Displayed level keeps climbing forever, while difficultyLevel cycles every 12.
+  */
+  const base = 7 + state.difficultyLevel + Math.floor((state.cycle - 1) * 3);
+  const hardBonus = state.hardMode ? 4 + Math.floor(state.cycle * 1.5) : 0;
+  return Math.min(base + hardBonus, state.hardMode ? 46 : 34);
 }
 
 function bombQuotaForLevel() {
-  if (state.cycle <= 1) return 0;
-  return Math.min(state.cycle + Math.floor(state.level / 4), 7);
+  if (!state.hardMode && state.cycle <= 1) return 0;
+  const base = state.hardMode ? 1 + state.cycle + Math.floor(state.difficultyLevel / 3) : state.cycle + Math.floor(state.difficultyLevel / 4);
+  return Math.min(base, state.hardMode ? 12 : 7);
 }
 
 function blastRadius() {
@@ -1063,7 +1315,11 @@ function blastRadius() {
 }
 
 function rocketFontSize() {
-  return 13 + state.upgrades.rocketSize * 2.2;
+  /*
+    Bigger Rocket Size should visibly mean bigger rocket and bigger blast.
+    Approximate visual size tracks blast radius growth.
+  */
+  return Math.min(78, 18 + state.upgrades.rocketSize * 8.5);
 }
 
 function prepareUfoForLevel() {
@@ -1092,9 +1348,12 @@ window.showHelp = function() {
         <div><strong>🍗 Chicken Meat-eor</strong><br>Destroy for 3 credits. Counts toward your final chicken collection.</div>
         <div><strong>🍖 Rib Meat-eor</strong><br>Destroy for 3 credits. Counts toward your final rib collection.</div>
         <div><strong>☄️ Meteor</strong><br>Destroy for 5 credits. Meteors are worth more than meat-eors.</div>
-        <div><strong>💣 Bomb</strong><br>Appears after the difficulty resets. Do not tap it or the game ends.</div>
+        <div><strong>💣 Bomb</strong><br>Normal Mode: appears after level 12 difficulty reset. Hard Mode: appears from level 1. Bombs are extra hazards and do not count as targets.</div>
+        <div><strong>🛡️ Bomb Immunity</strong><br>Every 1000 credits earned grants 1 bomb immunity. If you tap a bomb by accident, immunity saves you, but costs 1000 credits and lowers Rocket Size and Multi-Missile by 1.</div>
+        <div><strong>🔥 Hard Mode</strong><br>Selectable only at the beginning. Red theme, faster falling objects, more targets, and more bombs from level 1.</div>
         <div><strong>🛸 UFO Bonus</strong><br>Appears randomly after half of some levels. Tap to break shields. Capturing it gives a big credit reward and extra lives.</div>
         <div><strong>Multi-Missile Tap</strong><br>For meteors: lets you tap the same locked target multiple times, launching more rockets. For UFOs: each tap removes shields equal to your Multi-Missile level.</div>
+        <div><strong>Starter Explosion</strong><br>Your starter pack includes a white expanding circle so you can see the current blast radius.</div>
         <div><strong>Rocket Size</strong><br>Increases blast radius and unlocks grander explosion effects.</div>
         <div><strong>Trail Length</strong><br>Makes rocket trail particles fade slower, creating longer visible trails and unlocking stronger trail styles.</div>
       </div>
@@ -1118,22 +1377,26 @@ window.backToTitle = function() {
         so it flies awkwardly, unstable, and random.
       </p>
       <div class="button-row">
-        <button onclick="startGame()">Start Game</button>
+        <button onclick="startGame(false)">Normal Mode</button>
+        <button onclick="startGame(true)">Hard Mode</button>
         <button onclick="showHelp()">Help & Instructions</button>
       </div>
     </div>
   `;
 };
 
-function startGame() {
+function startGame(hardMode = false) {
   clearField();
   stopGameOverFireworks();
+  document.body.classList.toggle("hard-mode", !!hardMode);
 
   Object.assign(state, {
     running: true,
     paused: false,
     level: 1,
+    difficultyLevel: 1,
     cycle: 1,
+    hardMode: !!hardMode,
     lives: 5,
     coins: 0,
     score: 0,
@@ -1158,12 +1421,14 @@ function startGame() {
     ufoIntroPending: false,
     ufoCaught: 0,
     ufoLivesGained: 0,
+    bombImmunity: 0,
+    bombImmunitySpentCredits: 0,
     stats: { steak: 0, chicken: 0, rib: 0, meteor: 0 }
   });
 
   prepareUfoForLevel();
   setNextButtonVisible(false);
-  ui.pauseBtn.textContent = "Pause";
+  setPauseButtonNormal();
   overlay.style.background = "rgba(0,0,0,.58)";
   overlay.style.display = "none";
   updateUI();
@@ -1198,9 +1463,41 @@ function startLevel() {
   state.lastTime = performance.now();
   overlay.style.background = "rgba(0,0,0,.58)";
   overlay.style.display = "none";
-  ui.pauseBtn.textContent = "Pause";
+  setPauseButtonNormal();
   updateUI();
   showMessage("Level " + state.level + " started!");
+  if (state.bombQuota > 0) setTimeout(showBombWarning, 350);
+}
+
+
+function showBombWarning() {
+  if (!state.running || state.bombQuota <= 0) return;
+  state.paused = true;
+  overlay.style.background = "rgba(0,0,0,.58)";
+  overlay.style.display = "grid";
+  overlay.innerHTML = `
+    <div class="card bomb-warning">
+      <h1>💣 Bomb Warning</h1>
+      <p>
+        Difficulty reset is active. This level has <strong>${state.total}</strong> required targets,
+        plus up to <strong>${state.bombQuota}</strong> extra random bomb${state.bombQuota === 1 ? "" : "s"} that do not count as targets.
+      </p>
+      <p>
+        Do not tap bombs. Explosion radius will not set them off, but direct taps will end the game unless you have bomb immunity. Every 1000 credits earned grants 1 immunity; using it costs 1000 credits and reduces Rocket Size and Multi-Missile by 1.
+      </p>
+      <button onclick="continueAfterBombWarning()">Careful — Continue</button>
+    </div>
+  `;
+}
+window.continueAfterBombWarning = function() {
+  overlay.style.display = "none";
+  state.paused = false;
+  setPauseButtonNormal();
+  state.lastTime = performance.now();
+};
+
+function maxObjectsToSpawn() {
+  return state.total + state.bombQuota;
 }
 
 function shouldSpawnBomb() {
@@ -1209,9 +1506,12 @@ function shouldSpawnBomb() {
 }
 
 function spawnObject() {
-  if (state.spawned >= state.total) return;
+  if (state.spawned >= maxObjectsToSpawn()) return;
 
-  const isBomb = shouldSpawnBomb();
+  const nonBombClearedOrSpawned = state.objects.filter(o => o.type !== "bomb").length + state.cleared;
+  const mustSpawnBomb = nonBombClearedOrSpawned >= state.total && state.bombsSpawned < state.bombQuota;
+  const canSpawnNonBomb = nonBombClearedOrSpawned < state.total;
+  const isBomb = mustSpawnBomb || (!canSpawnNonBomb ? true : shouldSpawnBomb());
   const isMeat = !isBomb && Math.random() < 0.68;
 
   const el = document.createElement("div");
@@ -1368,7 +1668,9 @@ function updateObjects(dt) {
         setTimeout(() => document.body.classList.remove("damage-flash"), 300);
       }
 
-      state.cleared++;
+      if (obj.type !== "bomb") {
+        state.cleared++;
+      }
       updateUI();
 
       if (state.lives <= 0) gameOver();
@@ -1393,7 +1695,7 @@ function updateRockets(dt, onlySpecial = false) {
     const angle = Math.atan2(dy, dx);
     r.el.style.transform = `rotate(${angle}rad)`;
 
-    if (dist < 26 + state.upgrades.rocketSize * 3) {
+    if (dist < 28 + state.upgrades.rocketSize * 6) {
       r.el.remove();
 
       if (r.isSpecialUfo) {
@@ -1429,8 +1731,11 @@ function updateRockets(dt, onlySpecial = false) {
 
     if (r.trailTimer >= particleDelay) {
       r.trailTimer = 0;
-      createRocketTrailParticle(r.x, r.y, backX, backY, true);
-      for (let i = 0; i < trail.density; i++) createRocketTrailParticle(r.x, r.y, backX, backY, false);
+      const rocketBackOffset = (isFinite(parseFloat(r.el.style.fontSize)) ? parseFloat(r.el.style.fontSize) : rocketFontSize()) * 0.42;
+      const trailX = r.x + backX * rocketBackOffset;
+      const trailY = r.y + backY * rocketBackOffset;
+      createRocketTrailParticle(trailX, trailY, backX, backY, true);
+      for (let i = 0; i < trail.density; i++) createRocketTrailParticle(trailX, trailY, backX, backY, false);
     }
 
     r.el.style.left = r.x + "px";
@@ -1447,7 +1752,7 @@ function destroyObject(obj, reward) {
   state.objects = state.objects.filter(o => o !== obj);
 
   if (reward) {
-    state.coins += obj.reward;
+    addCredits(obj.reward);
     state.score += obj.reward * 10 + state.level * 2 + state.cycle * 5;
 
     if (obj.type === "meteor") {
@@ -1491,29 +1796,33 @@ function createExplosion(x, y, scale = 1) {
   wrap.style.left = x + "px";
   wrap.style.top = y + "px";
 
-  const particles = Math.floor((effect.particles + state.upgrades.rocketSize * 4) * scale);
-  const distance = (32 + effect.distanceBonus + state.upgrades.rocketSize * 8) * scale;
   const ring = blastRadius() * 2.1 * scale;
   const life = Math.floor(effect.life * scale);
 
   const shock = document.createElement("div");
   shock.className = "shockwave";
-  shock.style.borderColor = effect.colors[0];
+  shock.style.borderColor = effect.colors[0] || "#ffffff";
   shock.style.setProperty("--ring", ring + "px");
   shock.style.setProperty("--life", life + "ms");
+  shock.style.boxShadow = effect.radiusOnly ? "0 0 20px rgba(255,255,255,.85), inset 0 0 16px rgba(255,255,255,.35)" : "";
   wrap.appendChild(shock);
 
-  for (let i = 0; i < particles; i++) {
-    const p = document.createElement("div");
-    p.className = "burst";
-    p.style.setProperty("--c", effect.colors[Math.floor(Math.random() * effect.colors.length)]);
-    p.style.setProperty("--s", (4 + Math.random() * 6) + "px");
-    p.style.setProperty("--angle", (360 / particles * i + Math.random() * 18) + "deg");
-    p.style.setProperty("--start", "0px");
-    p.style.setProperty("--distance", (distance + Math.random() * 28) + "px");
-    p.style.setProperty("--life", (life + Math.random() * 260) + "ms");
-    p.style.setProperty("--twist", (effect.id === "spiral" || effect.id === "ultimate" ? 160 : 0) + "deg");
-    wrap.appendChild(p);
+  if (!effect.radiusOnly) {
+    const particles = Math.floor((effect.particles + state.upgrades.rocketSize * 4) * scale);
+    const distance = (32 + effect.distanceBonus + state.upgrades.rocketSize * 8) * scale;
+
+    for (let i = 0; i < particles; i++) {
+      const p = document.createElement("div");
+      p.className = "burst";
+      p.style.setProperty("--c", effect.colors[Math.floor(Math.random() * effect.colors.length)]);
+      p.style.setProperty("--s", (4 + Math.random() * 6) + "px");
+      p.style.setProperty("--angle", (360 / particles * i + Math.random() * 18) + "deg");
+      p.style.setProperty("--start", "0px");
+      p.style.setProperty("--distance", (distance + Math.random() * 28) + "px");
+      p.style.setProperty("--life", (life + Math.random() * 260) + "ms");
+      p.style.setProperty("--twist", (effect.id === "spiral" || effect.id === "ultimate" ? 160 : 0) + "deg");
+      wrap.appendChild(p);
+    }
   }
 
   game.appendChild(wrap);
@@ -1522,34 +1831,29 @@ function createExplosion(x, y, scale = 1) {
 
 function createMeatExplosion(x, y) {
   /*
-    One huge isolated UFO reward blast.
-    The game is paused during this, but we keep it to a single burst so it feels grand
-    without the stutter caused by several separate explosions.
+    Comedic UFO reward blast:
+    very large, readable meats thrown across the screen.
+    Fewer nodes, no tiny meat crumbs, reliable on mobile.
   */
+  const isMobile = window.matchMedia("(pointer: coarse)").matches || window.innerWidth <= 600;
   const style = document.createElement("style");
   style.textContent = `
     @keyframes meatBurst {
       0% {
         opacity: 0;
-        transform: translate(-50%,-50%) rotate(var(--angle)) translateX(0) scale(.25) rotate(0deg);
+        transform: translate(-50%,-50%) rotate(var(--angle)) translateX(0) scale(.35) rotate(0deg);
       }
-      7% {
-        opacity: 1;
-      }
-      42% {
-        opacity: 1;
-        filter: drop-shadow(0 0 20px var(--glow));
-      }
+      10% { opacity: 1; }
+      68% { opacity: 1; }
       100% {
         opacity: 0;
-        transform: translate(-50%,-50%) rotate(var(--angle)) translateX(var(--distance)) scale(.2) rotate(var(--spin));
+        transform: translate(-50%,-50%) rotate(var(--angle)) translateX(var(--distance)) scale(.72) rotate(var(--spin));
       }
     }
-
     @keyframes meatScreenFlash {
-      0% { opacity: 0; transform: scale(.25); }
-      10% { opacity: .95; transform: scale(1); }
-      100% { opacity: 0; transform: scale(1.45); }
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(.35); }
+      15% { opacity: .78; transform: translate(-50%, -50%) scale(1); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1.45); }
     }
   `;
 
@@ -1564,71 +1868,55 @@ function createMeatExplosion(x, y) {
   flash.style.position = "absolute";
   flash.style.left = "50%";
   flash.style.top = "50%";
-  flash.style.width = "42vmax";
-  flash.style.height = "42vmax";
+  flash.style.width = isMobile ? "46vmax" : "56vmax";
+  flash.style.height = isMobile ? "46vmax" : "56vmax";
   flash.style.borderRadius = "50%";
-  flash.style.background = "radial-gradient(circle, rgba(255,255,255,.95), rgba(255,178,58,.45) 30%, rgba(255,84,56,.24) 54%, transparent 72%)";
+  flash.style.background = "radial-gradient(circle, rgba(255,255,255,.9), rgba(255,178,58,.5) 34%, rgba(255,84,56,.26) 58%, transparent 75%)";
   flash.style.transform = "translate(-50%, -50%)";
-  flash.style.animation = "meatScreenFlash 1250ms ease-out forwards";
+  flash.style.animation = "meatScreenFlash 1050ms ease-out forwards";
   master.appendChild(flash);
 
-  const meats = ["🥩", "🍗", "🍖", "🥓", "🍔", "🌭", "✨", "💥", "🔥"];
-  const glowColors = ["#ffb23a", "#ff5438", "#fff06a", "#35d4ff", "#84ff8c", "#ffffff"];
-  const particleCount = 88;
-  const maxDistance = Math.max(window.innerWidth, window.innerHeight) * 0.82;
+  const meats = ["🥩", "🍗", "🍖", "🥓", "🍔", "🌭"];
+  const particleCount = isMobile ? 14 : 22;
+  const maxDistance = Math.max(window.innerWidth, window.innerHeight) * (isMobile ? 0.72 : 0.84);
 
   for (let i = 0; i < particleCount; i++) {
     const p = document.createElement("div");
-    const meat = meats[Math.floor(Math.random() * meats.length)];
-    const glow = glowColors[Math.floor(Math.random() * glowColors.length)];
-
-    p.textContent = meat;
+    p.textContent = meats[Math.floor(Math.random() * meats.length)];
     p.style.position = "absolute";
     p.style.left = "50%";
     p.style.top = "50%";
 
     /*
-      Mix tiny crumbs and huge meats so the single blast still fills the screen.
-      Most particles are small/medium; some are large hero chunks.
+      Mobile meat-eors are roughly 42-54px objects.
+      These are intentionally comparable or larger so players can instantly recognize them.
     */
-    const sizeRoll = Math.random();
-
-    /*
-      Make meat readable: most particles are now medium/large meat chunks,
-      with only a few tiny sparkle crumbs.
-    */
-    const isSpark = meat === "✨" || meat === "💥" || meat === "🔥";
-    const fontSize = isSpark
-      ? 18 + Math.random() * 18
-      : sizeRoll > 0.78
-        ? 54 + Math.random() * 32
-        : sizeRoll > 0.34
-          ? 34 + Math.random() * 22
-          : 24 + Math.random() * 14;
+    const hero = Math.random() > 0.58;
+    const fontSize = hero
+      ? (isMobile ? 86 : 104) + Math.random() * (isMobile ? 18 : 28)
+      : (isMobile ? 58 : 72) + Math.random() * (isMobile ? 18 : 24);
 
     p.style.fontSize = fontSize + "px";
-    p.style.setProperty("--angle", (i * 360 / particleCount + Math.random() * 20) + "deg");
+    p.style.setProperty("--angle", (i * 360 / particleCount + Math.random() * 24) + "deg");
     p.style.setProperty("--distance", (80 + Math.random() * maxDistance) + "px");
-    p.style.setProperty("--spin", (Math.random() * 900 - 450) + "deg");
-    p.style.setProperty("--glow", glow);
-    p.style.animation = `meatBurst ${1650 + Math.random() * 900}ms cubic-bezier(.13,.72,.2,1) forwards`;
-    p.style.animationDelay = (Math.random() * 140) + "ms";
-    p.style.filter = "drop-shadow(0 0 14px " + glow + ")";
+    p.style.setProperty("--spin", (Math.random() * 600 - 300) + "deg");
+    p.style.animation = `meatBurst ${isMobile ? 1650 : 1900}ms cubic-bezier(.13,.72,.2,1) forwards`;
+    p.style.animationDelay = (Math.random() * 45) + "ms";
     master.appendChild(p);
   }
 
-  for (let ring = 0; ring < 5; ring++) {
+  const ringCount = isMobile ? 1 : 2;
+  for (let ring = 0; ring < ringCount; ring++) {
     const shock = document.createElement("div");
     shock.className = "shockwave";
-    shock.style.borderColor = glowColors[ring % glowColors.length];
-    shock.style.setProperty("--ring", (220 + ring * 180) + "px");
-    shock.style.setProperty("--life", (850 + ring * 210) + "ms");
-    shock.style.animationDelay = (ring * 70) + "ms";
+    shock.style.borderColor = ring ? "#ffb23a" : "#ffffff";
+    shock.style.setProperty("--ring", (isMobile ? 280 : 360) + ring * 220 + "px");
+    shock.style.setProperty("--life", (840 + ring * 190) + "ms");
     master.appendChild(shock);
   }
 
   game.appendChild(master);
-  setTimeout(() => master.remove(), 2800);
+  setTimeout(() => master.remove(), isMobile ? 2100 : 2500);
 }
 
 function maybeSpawnUfo() {
@@ -1694,19 +1982,19 @@ function ufoShieldCount() {
     Starts with 1 shield so the first encounter is easy to understand.
     Higher levels and later run cycles add more shields.
   */
-  return 1 + Math.floor(state.level / 3) + state.cycle - 1;
+  return 1 + Math.floor(state.difficultyLevel / 3) + state.cycle - 1;
 }
 
 function ufoSpeed() {
-  return 145 + state.level * 13 + state.cycle * 20;
+  return 145 + state.difficultyLevel * 13 + state.cycle * 20;
 }
 
 function ufoReward(shields) {
-  return 55 + state.level * 10 + state.cycle * 35 + shields * 12;
+  return 55 + state.difficultyLevel * 10 + state.cycle * 35 + shields * 12;
 }
 
 function ufoLifeReward() {
-  return Math.max(1, Math.min(5, 1 + Math.floor(state.level / 4) + Math.floor((state.cycle - 1) / 2)));
+  return Math.max(1, Math.min(5, 1 + Math.floor(state.difficultyLevel / 4) + Math.floor((state.cycle - 1) / 2)));
 }
 
 function spawnUfo() {
@@ -1909,7 +2197,7 @@ function specialUfoExplosion(x, y, ufo) {
 
   const reward = ufo ? ufo.reward : 100;
   const extraLives = ufoLifeReward();
-  state.coins += reward;
+  addCredits(reward);
   state.score += reward * 12 + state.level * 20;
   state.ufoCaught++;
   state.ufoLivesGained += extraLives;
@@ -1937,7 +2225,7 @@ function specialUfoExplosion(x, y, ufo) {
         </div>
       </div>
     `;
-  }, 2100);
+  }, (window.matchMedia("(pointer: coarse)").matches || window.innerWidth <= 600) ? 1850 : 2250);
 }
 
 window.continueAfterUfo = function() {
@@ -1950,6 +2238,7 @@ window.continueAfterUfo = function() {
   }
 
   state.paused = false;
+  setPauseButtonNormal();
   state.lastTime = performance.now();
 };
 
@@ -1980,7 +2269,7 @@ function setNextLevelReady(reason = "Level complete!") {
   state.completingLevel = true;
   state.paused = true;
   setNextButtonVisible(true);
-  ui.pauseBtn.textContent = "Resume";
+  setPauseButtonNormal();
   state.cleared = Math.max(state.cleared, state.total);
   updateUI();
   showMessage(reason);
@@ -2038,9 +2327,9 @@ function showLevelComplete() {
   state.nextReady = true;
   state.levelCompleteShown = true;
   setNextButtonVisible(true);
-  const atMax = state.level >= MAX_LEVEL;
-  const next = atMax ? 1 : state.level + 1;
-  const upcomingUnlocks = atMax ? [] : getUnlocksForLevel(next);
+  const atMax = state.difficultyLevel >= MAX_LEVEL;
+  const next = atMax ? state.level + 1 : state.level + 1;
+  const upcomingUnlocks = atMax ? [] : getUnlocksForLevel(Math.min(MAX_LEVEL, state.difficultyLevel + 1));
   const unlockText = upcomingUnlocks.length
     ? `<p><strong>Next level unlocks:</strong><br>${upcomingUnlocks.join("<br>")}</p>`
     : atMax
@@ -2057,7 +2346,7 @@ function showLevelComplete() {
       ${unlockText}
       ${affordAnything ? `<p>Visit the shop before continuing?</p>` : `<p><strong>Not enough credits to buy anything yet.</strong></p>`}
       <div class="button-row">
-        <button onclick="openShop(true)">Shop Upgrades</button>
+        <button onclick="openShop(true)">${affordAnything ? "Shop Upgrades" : "View Upgrades"}</button>
         <button onclick="advanceAfterLevel()">Continue</button>
       </div>
     </div>
@@ -2066,13 +2355,16 @@ function showLevelComplete() {
 
 window.advanceAfterLevel = function() {
   if (!state.running) return;
-  if (state.level >= MAX_LEVEL) {
-    state.level = 1;
+
+  state.level++;
+  if (state.difficultyLevel >= MAX_LEVEL) {
+    state.difficultyLevel = 1;
     state.cycle++;
-    showMessage("Difficulty reset! Bombs increased.");
+    showMessage(state.hardMode ? "Hard Mode reset! More bombs and targets." : "Difficulty reset! Bombs can appear now.");
   } else {
-    state.level++;
+    state.difficultyLevel++;
   }
+
   startLevel();
 };
 
@@ -2102,8 +2394,19 @@ function canBuyAnything() {
 }
 
 function explosionPreviewHtml(effect) {
-  const count = Math.min(effect.particles, effect.id === "ultimate" ? 44 : 30);
+  if (effect.radiusOnly) {
+    return `
+      <div class="preview">
+        <div class="preview-explosion" style="--ring:${70 + state.upgrades.rocketSize * 12}px; --dur:${(effect.life / 1000).toFixed(2)}s;">
+        </div>
+      </div>
+    `;
+  }
+
+  const simulatedParticles = Math.floor(effect.particles + state.upgrades.rocketSize * 4);
+  const count = Math.min(simulatedParticles, effect.id === "ultimate" ? 64 : 44);
   const dur = (effect.life / 1000).toFixed(2) + "s";
+  const actualDistance = 32 + effect.distanceBonus + state.upgrades.rocketSize * 8;
   const spans = [];
 
   for (let i = 0; i < count; i++) {
@@ -2111,8 +2414,8 @@ function explosionPreviewHtml(effect) {
       <span style="
         --c:${effect.colors[i % effect.colors.length]};
         --angle:${(360 / count) * i}deg;
-        --distance:${20 + effect.distanceBonus * .45 + (i % 7) * 4}px;
-        --s:${3 + (i % 5)}px;
+        --distance:${actualDistance * .55 + (i % 7) * 3}px;
+        --s:${4 + (i % 6)}px;
         --delay:${(i % 9) * .035}s;
         --dur:${dur};
         --twist:${effect.id === "spiral" || effect.id === "ultimate" ? 160 : 0}deg;
@@ -2122,7 +2425,7 @@ function explosionPreviewHtml(effect) {
 
   return `
     <div class="preview">
-      <div class="preview-explosion" style="--ring:${70 + effect.distanceBonus * .55}px; --dur:${dur};">
+      <div class="preview-explosion" style="--ring:${blastRadius() * 1.35}px; --dur:${dur};">
         ${spans.join("")}
       </div>
     </div>
@@ -2176,7 +2479,19 @@ function trailPreviewHtml(trail) {
   `;
 }
 
-function openShop(fromLevelEnd = false) {
+
+function currentShopScroll() {
+  const card = overlay.querySelector(".shop-card");
+  return card ? card.scrollTop : 0;
+}
+function restoreShopScroll(scrollTop) {
+  requestAnimationFrame(() => {
+    const card = overlay.querySelector(".shop-card");
+    if (card && Number.isFinite(scrollTop)) card.scrollTop = scrollTop;
+  });
+}
+
+function openShop(fromLevelEnd = false, scrollTop = 0) {
   if (state.running) {
     checkCompletionFailsafe(0, true);
     if (state.nextReady && !fromLevelEnd) {
@@ -2258,9 +2573,15 @@ function openShop(fromLevelEnd = false) {
   overlay.style.background = "rgba(0,0,0,.58)";
   overlay.style.display = "grid";
   overlay.innerHTML = `
-    <div class="card">
-      <h1>Rocket Workshop</h1>
-      <p>Credits: <strong>${state.coins}</strong></p>
+    <div class="card shop-card">
+      <div class="shop-bar">
+        <h1>Rocket Workshop</h1>
+        <div class="shop-credit">🪙 ${state.coins} Credits</div>
+        <div class="button-row">
+          ${fromLevelEnd ? `<button onclick="advanceAfterLevel()">Next Level</button>` : ""}
+          <button onclick="closeShop()">${state.running ? "Back" : "Back"}</button>
+        </div>
+      </div>
 
       <h2>Upgrades</h2>
       <div class="shop-grid">${upgradeHtml}</div>
@@ -2273,14 +2594,16 @@ function openShop(fromLevelEnd = false) {
       <p>Trail previews fly from right to left. Particles come from the rear booster. Advanced trails require higher Trail Length.</p>
       <div class="shop-grid">${trailsHtml}</div>
 
-      <div class="button-row">
-        <button onclick="${fromLevelEnd ? "advanceAfterLevel()" : "closeShop()"}">${fromLevelEnd ? "Continue to Next Level" : state.running ? "Back to Battle" : "Back"}</button>
-      </div>
     </div>
   `;
+  restoreShopScroll(scrollTop);
 }
 
 window.closeShop = function() {
+  if (state.running && state.nextReady) {
+    showLevelComplete();
+    return;
+  }
   if (!state.running) {
     overlay.style.display = "grid";
     overlay.innerHTML = `
@@ -2291,7 +2614,8 @@ window.closeShop = function() {
           so it flies awkwardly, unstable, and random. This game is dedicated to him.
         </p>
         <div class="button-row">
-          <button onclick="startGame()">Start Game</button>
+          <button onclick="startGame(false)">Normal Mode</button>
+          <button onclick="startGame(true)">Hard Mode</button>
           <button onclick="showHelp()">Help & Instructions</button>
         </div>
       </div>
@@ -2300,8 +2624,25 @@ window.closeShop = function() {
   }
   overlay.style.display = "none";
   state.paused = false;
+  setPauseButtonNormal();
   state.lastTime = performance.now();
 };
+
+
+function congratulateMaxUpgrade(name) {
+  overlay.style.background = "rgba(0,0,0,.58)";
+  overlay.style.display = "grid";
+  overlay.innerHTML = `
+    <div class="card">
+      <h1>🎉 Max Power!</h1>
+      <p>Congratulations! You maxed out <strong>${name}</strong>.</p>
+      <p>The upgrade is now at its full power for this run.</p>
+      <div class="button-row">
+        <button onclick="openShop(true, currentShopScroll())">Back to Shop</button>
+      </div>
+    </div>
+  `;
+}
 
 window.buyUpgrade = function(key, fromLevelEnd = false) {
   const item = upgradeItems.find(i => i.key === key);
@@ -2313,7 +2654,11 @@ window.buyUpgrade = function(key, fromLevelEnd = false) {
   state.coins -= cost;
   state.upgrades[key]++;
   updateUI();
-  openShop(fromLevelEnd);
+  if (state.upgrades[key] >= item.max) {
+    congratulateMaxUpgrade(item.name);
+    return;
+  }
+  openShop(fromLevelEnd, currentShopScroll());
 };
 
 window.buyEffect = function(id, fromLevelEnd = false) {
@@ -2323,13 +2668,17 @@ window.buyEffect = function(id, fromLevelEnd = false) {
   state.ownedEffects.push(id);
   state.selectedEffect = id;
   updateUI();
-  openShop(fromLevelEnd);
+  if (state.ownedEffects.length >= explosionEffects.length) {
+    congratulateMaxUpgrade("Explosion Effects");
+    return;
+  }
+  openShop(fromLevelEnd, currentShopScroll());
 };
 
 window.selectEffect = function(id, fromLevelEnd = false) {
   if (!state.ownedEffects.includes(id)) return;
   state.selectedEffect = id;
-  openShop(fromLevelEnd);
+  openShop(fromLevelEnd, currentShopScroll());
 };
 
 window.buyTrail = function(id, fromLevelEnd = false) {
@@ -2342,16 +2691,29 @@ window.buyTrail = function(id, fromLevelEnd = false) {
   state.ownedTrails.push(id);
   state.selectedTrail = id;
   updateUI();
-  openShop(fromLevelEnd);
+  if (state.ownedTrails.length >= rocketTrails.length) {
+    congratulateMaxUpgrade("Rocket Trails");
+    return;
+  }
+  openShop(fromLevelEnd, currentShopScroll());
 };
 
 window.selectTrail = function(id, fromLevelEnd = false) {
   if (!state.ownedTrails.includes(id)) return;
   state.selectedTrail = id;
-  openShop(fromLevelEnd);
+  openShop(fromLevelEnd, currentShopScroll());
 };
 
 function triggerBombGameOver() {
+  if (useBombImmunity()) {
+    const boom = document.createElement("div");
+    boom.className = "screen-boom";
+    boom.style.background = "radial-gradient(circle at center, rgba(255,255,255,.9), rgba(53,212,255,.75) 30%, rgba(0,0,0,.15) 70%)";
+    game.appendChild(boom);
+    setTimeout(() => boom.remove(), 650);
+    return;
+  }
+
   const boom = document.createElement("div");
   boom.className = "screen-boom";
   game.appendChild(boom);
@@ -2385,8 +2747,10 @@ function gameOver() {
         <div class="result-pop" ${delay(3)}><strong>${state.coins}</strong>Final Credits</div>
         <div class="result-pop" ${delay(4)}><strong>${state.level}</strong>Level Reached</div>
         <div class="result-pop" ${delay(5)}><strong>${state.cycle}</strong>Run Cycle</div>
+        <div class="result-pop" ${delay(6)}><strong>${state.hardMode ? "Hard" : "Normal"}</strong>Mode</div>
         <div class="result-pop" ${delay(6)}><strong>${state.ufoCaught || 0}</strong>UFOs Caught</div>
         <div class="result-pop" ${delay(7)}><strong>${state.ufoLivesGained || 0}</strong>UFO Lives Gained</div>
+        <div class="result-pop" ${delay(8)}><strong>${state.bombImmunity || 0}</strong>Bomb Immunity Left</div>
         <div class="result-pop" ${delay(8)}><strong>${state.upgrades.rocketSize}/${MAX_ROCKET_SIZE}</strong>Rocket Size</div>
         <div class="result-pop" ${delay(9)}><strong>${state.upgrades.missiles}/4</strong>Multi-Missile</div>
         <div class="result-pop" ${delay(10)}><strong>${state.upgrades.trailLength}/7</strong>Trail Length</div>
@@ -2540,10 +2904,45 @@ function updatePointer(x, y) {
   launcher.style.transform = `translateX(-50%) rotate(${angle + Math.PI / 2}rad)`;
 }
 
+
+function showPauseLegend() {
+  state.paused = true;
+  setPauseButtonNormal();
+  overlay.style.background = "rgba(0,0,0,.58)";
+  overlay.style.display = "grid";
+  overlay.innerHTML = `
+    <div class="card">
+      <h1>Paused</h1>
+      <p>Here is what the top icons mean during gameplay.</p>
+      <div class="pause-stat-grid">
+        <div><strong>⭐ Level</strong>Current level: ${state.level}</div>
+        <div><strong>🔁 Run</strong>Difficulty cycle: ${state.cycle}</div>
+        <div><strong>🔥 Mode</strong>${state.hardMode ? "Hard Mode" : "Normal Mode"}</div>
+        <div><strong>❤️ Lives</strong>Remaining lives: ${state.lives}</div>
+        <div><strong>🪙 Credits</strong>Available credits: ${state.coins}</div>
+        <div><strong>🎯 Target</strong>Cleared targets: ${state.cleared}/${state.total}</div>
+        <div><strong>🛸 UFO</strong>Captured UFOs: ${state.ufoCaught || 0}</div>
+        <div><strong>🛡️ Bomb Immunity</strong>Available shields: ${state.bombImmunity || 0}</div>
+      </div>
+      <div class="button-row">
+        <button onclick="resumeFromPauseLegend()">Continue</button>
+        <button onclick="openShop(false)">Shop</button>
+      </div>
+    </div>
+  `;
+}
+
+window.resumeFromPauseLegend = function() {
+  overlay.style.display = "none";
+  state.paused = false;
+  setPauseButtonNormal();
+  state.lastTime = performance.now();
+};
+
 function pauseForRotation() {
   if (!state.running) return;
   state.paused = true;
-  ui.pauseBtn.textContent = "Resume";
+  setPauseButtonNormal();
   overlay.style.display = "grid";
   overlay.innerHTML = `
     <div class="card">
@@ -2560,7 +2959,7 @@ function pauseForRotation() {
 window.resumeAfterRotation = function() {
   overlay.style.display = "none";
   state.paused = false;
-  ui.pauseBtn.textContent = "Pause";
+  setPauseButtonNormal();
   state.lastTime = performance.now();
 };
 
@@ -2574,7 +2973,7 @@ function loop(now) {
     state.spawnTimer += dt * 1000;
     state.levelElapsed += dt;
 
-    if (state.spawned < state.total && state.spawnTimer >= spawnInterval()) {
+    if (state.spawned < maxObjectsToSpawn() && state.spawnTimer >= spawnInterval()) {
       state.spawnTimer = 0;
       spawnObject();
     }
@@ -2604,15 +3003,19 @@ ui.pauseBtn.addEventListener("click", () => {
   if (!state.running) return;
   checkCompletionFailsafe(0, true);
   if (state.nextReady) { showLevelComplete(); return; }
-  state.paused = !state.paused;
-  ui.pauseBtn.textContent = state.paused ? "Resume" : "Pause";
-  showMessage(state.paused ? "Paused" : "Resumed");
-  state.lastTime = performance.now();
+
+  if (state.paused) {
+    overlay.style.display = "none";
+    state.paused = false;
+    setPauseButtonNormal();
+    showMessage("Resumed");
+    state.lastTime = performance.now();
+  } else {
+    showPauseLegend();
+  }
 });
 
-ui.nextBtn.addEventListener("click", () => {
-  if (state.running) advanceAfterLevel();
-});
+ui.nextBtn.addEventListener("click", () => {});
 
 window.addEventListener("orientationchange", () => setTimeout(pauseForRotation, 250));
 
