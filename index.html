@@ -20,9 +20,7 @@
 * {
   box-sizing: border-box;
   user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  touch-action: none;
-}
+  -webkit-tap-highlight-color: transparent;}
 
 body {
   margin: 0;
@@ -1236,6 +1234,49 @@ body.hard-mode button {
 
 #overlay .card {
   touch-action: pan-y;
+}
+
+.final-score-card.share-card,
+.final-score-card.share-card * {}
+
+
+/* Mobile touch scroll fix:
+   Do not lock touch-action globally. Only gameplay and final share card are locked.
+   Overlay cards such as Workshop, Help, Pause, About, and milestone cards can pan/scroll. */
+html,
+body {
+  touch-action: auto;
+}
+
+#game,
+#hud,
+.falling,
+.ufo,
+.rocket,
+.trail-particle,
+.explosion,
+#gameOverCanvas {
+  touch-action: none;
+}
+
+#overlay {
+  touch-action: pan-y;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+#overlay .card,
+#overlay .shop-card,
+#overlay .help-list,
+#overlay .shop-list {
+  touch-action: pan-y;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+#overlay button,
+#overlay input {
+  touch-action: manipulation;
 }
 
 .final-score-card.share-card,
@@ -3331,11 +3372,13 @@ function showDeveloperInfo() {
     <div class="card">
       <h1>About Meat-eor Blaster</h1>
       <p>
-        This game concept, development, design, and logic were created by
-        <strong>Mark Morgan</strong>.
+        Built and developed by <strong>Mark Morgan</strong> using AI-assisted implementation.
       </p>
       <p>
-        It is dedicated to his son, <strong>Zaqxen Rei</strong>, the pilot of the awkward and unpredictable UFO.
+        The game concept, design direction, gameplay rules, balance decisions, and logic were created by <strong>Mark Morgan</strong>.
+      </p>
+      <p>
+        Dedicated to his son, <strong>Zaqxen Rei</strong>, the pilot of the awkward and unpredictable UFO.
       </p>
       <div class="button-row">
         <button onclick="closeDeveloperInfo(${wasPaused ? "true" : "false"})">Back</button>
@@ -3409,7 +3452,7 @@ function loop(now) {
 
 
 function handleTouchMultiTap(e) {
-  if (overlay.style.display !== "none") return;
+  if (overlay.style.display && overlay.style.display !== "none") return;
   if (!state.running || state.paused) return;
   for (const touch of e.changedTouches) {
     const el = document.elementFromPoint(touch.clientX, touch.clientY);
