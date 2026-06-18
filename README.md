@@ -21,7 +21,7 @@
 
 ## UFO Bonus
 
-The UFO is piloted by **Zaqxen Rei**, which explains why it flies awkwardly, unstable, and random. This game is dedicated to him.
+The UFO is piloted by **Zaqxen Rei**, which explains why it flies awkwardly, unstable, and random.
 
 - The UFO starts with 1 shield.
 - Higher levels and later run cycles increase UFO shields and speed.
@@ -45,10 +45,11 @@ The game is designed to work on small mobile screens, including iPhone SE-sized 
 Open the HTML file directly in a browser:
 
 ```bash
-open meat-eor-blaster-v2.html
+open index.html
 ```
 
 Or just double-click the HTML file.
 
-screenshot.png
-Package ZIP with HTML + README + screenshot 
+## Play Online directly here 
+
+[Play Meat-eor Blaster](https://zaqxen.github.io/meat-eor-blaster/)
