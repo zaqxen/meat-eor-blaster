@@ -1193,6 +1193,56 @@ body.hard-mode button {
   padding-right: 10px;
 }
 
+
+/* Scrolling rules:
+   - Gameplay remains locked.
+   - Final result share card remains locked for screenshots.
+   - Help, Pause, Workshop, milestone, and other cards can scroll normally.
+*/
+#overlay {
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+}
+
+.card {
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+.final-score-card.share-card {
+  touch-action: none;
+}
+
+
+.final-score-card:not(.share-card) {
+  overflow-y: auto;
+  touch-action: pan-y;
+}
+
+
+.shop-card {
+  overflow-y: auto;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
+
+#overlay button,
+#overlay input,
+#overlay .card,
+#overlay .shop-card {
+  touch-action: manipulation;
+}
+
+#overlay .card {
+  touch-action: pan-y;
+}
+
+.final-score-card.share-card,
+.final-score-card.share-card * {
+  touch-action: none;
+}
+
 </style>
 </head>
 
@@ -1559,6 +1609,7 @@ window.showHelp = function() {
     <div class="card">
       <h1>How to Play</h1>
       <div class="help-list">
+
         <div><strong>🥩 Steak Meat-eor</strong><br>Destroy for 3 credits. Counts toward your final meat collection.</div>
         <div><strong>🍗 Chicken Meat-eor</strong><br>Destroy for 3 credits. Counts toward your final chicken collection.</div>
         <div><strong>🍖 Rib Meat-eor</strong><br>Destroy for 3 credits. Counts toward your final rib collection.</div>
@@ -3280,7 +3331,7 @@ function showDeveloperInfo() {
     <div class="card">
       <h1>About Meat-eor Blaster</h1>
       <p>
-        This game development, concept, design, and logic were created by
+        This game concept, development, design, and logic were created by
         <strong>Mark Morgan</strong>.
       </p>
       <p>
@@ -3358,6 +3409,7 @@ function loop(now) {
 
 
 function handleTouchMultiTap(e) {
+  if (overlay.style.display !== "none") return;
   if (!state.running || state.paused) return;
   for (const touch of e.changedTouches) {
     const el = document.elementFromPoint(touch.clientX, touch.clientY);
@@ -3383,7 +3435,10 @@ function handleTouchMultiTap(e) {
 
 
 game.addEventListener("pointermove", e => updatePointer(e.clientX, e.clientY));
-game.addEventListener("pointerdown", e => updatePointer(e.clientX, e.clientY));
+game.addEventListener("pointerdown", e => {
+  if (overlay.style.display !== "none") return;
+  updatePointer(e.clientX, e.clientY);
+});
 game.addEventListener("touchstart", handleTouchMultiTap, { passive: true });
 
 ui.devInfoBtn.addEventListener("click", () => showDeveloperInfo());
