@@ -1,0 +1,2636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>Meat-eor Blaster</title>
+<style>
+:root {
+  --panel: rgba(5,17,22,.95);
+  --panel2: rgba(255,255,255,.065);
+  --text: #f5f7e8;
+  --muted: #bed2c4;
+  --gold: #ffb23a;
+  --blue: #35d4ff;
+  --green: #84ff8c;
+  --red: #ff5438;
+  --ground: 70px;
+}
+
+* {
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+  background: radial-gradient(circle at top, #173f46, #061017 48%, #020507);
+  color: var(--text);
+  font-family: system-ui, Arial, sans-serif;
+}
+
+#game {
+  position: relative;
+  width: 100vw;
+  height: 100dvh;
+  min-height: 100vh;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+#starfield {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.star {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: rgba(255,255,255,var(--o));
+  box-shadow: 0 0 var(--glow) rgba(255,255,255,var(--o));
+  animation: starDrift var(--speed) linear infinite, starTwinkle var(--twinkle) ease-in-out infinite alternate;
+  animation-delay: var(--delay);
+}
+
+.star.warm {
+  background: rgba(255,225,145,var(--o));
+  box-shadow: 0 0 var(--glow) rgba(255,215,120,var(--o));
+}
+
+.star.cool {
+  background: rgba(145,225,255,var(--o));
+  box-shadow: 0 0 var(--glow) rgba(85,210,255,var(--o));
+}
+
+@keyframes starDrift {
+  from { transform: translate3d(0,-14vh,0); }
+  to { transform: translate3d(var(--dx),116vh,0); }
+}
+
+@keyframes starTwinkle {
+  from { opacity: calc(var(--o) * .35); }
+  to { opacity: var(--o); }
+}
+
+#hud {
+  position: absolute;
+  top: max(8px, env(safe-area-inset-top));
+  left: 8px;
+  right: 8px;
+  z-index: 30;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pill, button {
+  background: rgba(4,15,18,.88);
+  border: 1px solid rgba(255,178,58,.42);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-weight: 800;
+  box-shadow: 0 0 16px rgba(255,178,58,.08);
+}
+
+button {
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: .42;
+  cursor: not-allowed;
+}
+
+#message {
+  position: absolute;
+  left: 50%;
+  top: 62px;
+  transform: translateX(-50%);
+  z-index: 35;
+  background: rgba(0,0,0,.68);
+  border: 1px solid rgba(255,178,58,.35);
+  padding: 8px 13px;
+  border-radius: 999px;
+  opacity: 0;
+  transition: opacity .2s;
+  font-weight: 900;
+  text-align: center;
+  max-width: 92vw;
+  pointer-events: none;
+}
+
+#message.show { opacity: 1; }
+
+#ground {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: var(--ground);
+  z-index: 5;
+  background: linear-gradient(to top, #111d0c, #293916 60%, #445324);
+  border-top: 3px solid #8da44a;
+  box-shadow: 0 -16px 30px rgba(0,0,0,.52);
+}
+
+#launcher {
+  position: absolute;
+  bottom: 42px;
+  left: 50%;
+  width: 48px;
+  height: 58px;
+  transform: translateX(-50%) rotate(0deg);
+  transform-origin: 50% 70%;
+  z-index: 8;
+  filter: drop-shadow(0 0 10px rgba(255,178,58,.42));
+  pointer-events: none;
+}
+
+#launcher::before {
+  content: "🚀";
+  position: absolute;
+  font-size: 44px;
+  transform: rotate(-45deg);
+  transform-origin: 50% 50%;
+}
+
+.falling {
+  position: absolute;
+  width: clamp(42px, 11vw, 54px);
+  height: clamp(42px, 11vw, 54px);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-size: clamp(29px, 8vw, 38px);
+  z-index: 12;
+  touch-action: manipulation;
+  filter: drop-shadow(0 9px 8px rgba(0,0,0,.45));
+  animation: wobble .7s ease-in-out infinite alternate;
+}
+
+.falling.meat {
+  background: radial-gradient(circle at 35% 28%, #ffe8b8, #9f4c23 58%, #421d12);
+  border: 2px solid rgba(255,199,84,.55);
+  box-shadow: 0 0 16px rgba(255,178,58,.28);
+}
+
+.falling.meteor {
+  background: radial-gradient(circle at 35% 28%, #b26a36, #4d3024 56%, #1d1511);
+  border: 2px solid rgba(255,112,45,.58);
+  box-shadow: 0 0 19px rgba(255,84,56,.34);
+}
+
+.falling.bomb {
+  background: radial-gradient(circle at 35% 28%, #555, #171717 62%, #030303);
+  border: 2px solid rgba(255,80,50,.75);
+  box-shadow: 0 0 18px rgba(255,45,25,.55);
+  animation: bombPulse .45s infinite alternate;
+}
+
+@keyframes wobble {
+  from { transform: rotate(-5deg) scale(1); }
+  to { transform: rotate(5deg) scale(1.04); }
+}
+
+@keyframes bombPulse {
+  from { filter: drop-shadow(0 0 8px rgba(255,45,25,.7)); }
+  to { filter: drop-shadow(0 0 24px rgba(255,45,25,1)); }
+}
+
+.crosshair {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  z-index: 13;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  border: 2px solid var(--blue);
+  border-radius: 50%;
+  box-shadow: 0 0 15px rgba(53,212,255,.9);
+  animation: lockPulse .48s ease-in-out infinite alternate;
+}
+
+.crosshair::before, .crosshair::after {
+  content: "";
+  position: absolute;
+  background: var(--blue);
+  box-shadow: 0 0 10px rgba(53,212,255,.9);
+}
+
+.crosshair::before {
+  width: 2px;
+  height: 78px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.crosshair::after {
+  width: 78px;
+  height: 2px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes lockPulse {
+  from { opacity: .95; scale: .9; }
+  to { opacity: .55; scale: 1.05; }
+}
+
+.rocket {
+  position: absolute;
+  z-index: 16;
+  pointer-events: none;
+  transform-origin: 50% 50%;
+  filter: drop-shadow(0 0 8px rgba(53,212,255,.75));
+  will-change: left, top, transform;
+}
+
+.rocket .body {
+  display: block;
+  transform: rotate(45deg);
+  line-height: 1;
+}
+
+.trail-particle {
+  position: absolute;
+  z-index: 15;
+  width: var(--size);
+  height: var(--size);
+  left: var(--x);
+  top: var(--y);
+  background: var(--color);
+  border-radius: 50%;
+  pointer-events: none;
+  box-shadow: 0 0 8px var(--color), 0 0 18px var(--color);
+  animation: particleFade var(--life) ease-out forwards;
+}
+
+.trail-particle.core {
+  z-index: 16;
+  box-shadow: 0 0 10px var(--color), 0 0 24px var(--color), 0 0 38px var(--color);
+}
+
+@keyframes particleFade {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+  45% { opacity: .9; }
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--drift-x)), calc(-50% + var(--drift-y))) scale(.18);
+  }
+}
+
+.explosion {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 18;
+}
+
+.burst {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--s);
+  height: var(--s);
+  border-radius: 50%;
+  background: currentColor;
+  color: var(--c);
+  box-shadow: 0 0 18px currentColor;
+  animation: burst var(--life) ease-out forwards;
+}
+
+@keyframes burst {
+  from {
+    opacity: 1;
+    transform: translate(-50%, -50%) rotate(var(--angle)) translateX(var(--start)) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(calc(var(--angle) + var(--twist))) translateX(var(--distance)) scale(.14);
+  }
+}
+
+.shockwave {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border: 3px solid var(--gold);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: shock var(--life) ease-out forwards;
+}
+
+@keyframes shock {
+  to {
+    width: var(--ring);
+    height: var(--ring);
+    opacity: 0;
+  }
+}
+
+.ufo {
+  position: absolute;
+  z-index: 14;
+  display: grid;
+  place-items: center;
+  width: 96px;
+  height: 60px;
+  font-size: 36px;
+  filter: drop-shadow(0 0 18px rgba(255,210,70,.8));
+  animation: ufoGlow .45s infinite alternate;
+  touch-action: manipulation;
+}
+
+.ufo::before {
+  content: "🛸";
+  position: absolute;
+  font-size: 56px;
+}
+
+.ufo .bundle {
+  position: absolute;
+  bottom: -16px;
+  font-size: 32px;
+  animation: bundleGlow .35s infinite alternate;
+}
+
+.ufo .shield {
+  position: absolute;
+  top: -13px;
+  right: -8px;
+  background: rgba(53,212,255,.92);
+  color: #001a20;
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 13px;
+  font-weight: 900;
+  border: 1px solid white;
+  box-shadow: 0 0 14px rgba(53,212,255,.9);
+}
+
+.ufo .speech {
+  position: absolute;
+  left: 50%;
+  top: -46px;
+  transform: translateX(-50%);
+  min-width: 110px;
+  max-width: 180px;
+  padding: 6px 9px;
+  border-radius: 12px;
+  background: rgba(0,0,0,.78);
+  border: 1px solid rgba(255,255,255,.35);
+  color: white;
+  font-size: 12px;
+  font-weight: 900;
+  text-align: center;
+  line-height: 1.15;
+  pointer-events: none;
+  opacity: 0;
+  animation: ufoTalk 1.15s ease-out forwards;
+  box-shadow: 0 0 12px rgba(53,212,255,.35);
+}
+
+@keyframes ufoGlow {
+  from { filter: drop-shadow(0 0 8px rgba(255,210,70,.6)); }
+  to { filter: drop-shadow(0 0 22px rgba(255,210,70,1)); }
+}
+
+@keyframes bundleGlow {
+  from { scale: 1; filter: drop-shadow(0 0 4px #fff06a); }
+  to { scale: 1.12; filter: drop-shadow(0 0 16px #fff06a); }
+}
+
+@keyframes ufoTalk {
+  0% { opacity: 0; transform: translate(-50%, 8px) scale(.9); }
+  12% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  82% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -8px) scale(.96); }
+}
+
+#gameOverCanvas {
+  position: absolute;
+  inset: 0;
+  z-index: 39;
+  pointer-events: none;
+  display: none;
+}
+
+.screen-boom {
+  position: absolute;
+  inset: 0;
+  z-index: 80;
+  background: radial-gradient(circle at center, rgba(255,255,255,.95), rgba(255,84,56,.85) 30%, rgba(0,0,0,.95) 70%);
+  animation: screenBoom .85s ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes screenBoom {
+  0% { opacity: 0; scale: .2; }
+  25% { opacity: 1; scale: 1; }
+  100% { opacity: 0; scale: 1.4; }
+}
+
+#overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  background: rgba(0,0,0,.58);
+  padding: 10px;
+}
+
+.card {
+  width: min(94vw, 700px);
+  max-height: 92dvh;
+  overflow-y: auto;
+  background: var(--panel);
+  border: 1px solid rgba(255,178,58,.42);
+  border-radius: 22px;
+  padding: 18px;
+  box-shadow: 0 0 50px rgba(0,0,0,.72);
+  text-align: center;
+}
+
+.card h1, .card h2 {
+  margin: 0 0 8px;
+  color: var(--gold);
+}
+
+.card p {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.button-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.shop-grid {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.shop-item {
+  background: var(--panel2);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 15px;
+  padding: 10px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+  text-align: left;
+}
+
+.shop-item strong { color: var(--blue); }
+.shop-item small { color: #d6e0d2; }
+.locked { opacity: .68; }
+.selected {
+  border-color: var(--green);
+  box-shadow: 0 0 14px rgba(132,255,140,.18);
+}
+
+.preview {
+  position: relative;
+  margin-top: 7px;
+  width: 100%;
+  min-height: 98px;
+  border-radius: 14px;
+  background: radial-gradient(circle at center, rgba(255,255,255,.06), rgba(0,0,0,.3));
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+.preview-trail {
+  position: relative;
+  width: 100%;
+  height: 92px;
+  overflow: hidden;
+}
+
+.preview-rocket {
+  position: absolute;
+  top: 29px;
+  left: 0;
+  font-size: 25px;
+  z-index: 4;
+  animation: previewRocketFlyLeft 1.75s linear infinite;
+  filter: drop-shadow(0 0 8px rgba(53,212,255,.8));
+}
+
+.preview-rocket span {
+  display: block;
+  transform: rotate(225deg);
+  line-height: 1;
+}
+
+.preview-dot, .preview-streak {
+  position: absolute;
+  left: 0;
+  top: var(--top);
+  animation: previewTrailFlyLeft 1.75s linear infinite;
+  animation-delay: var(--delay);
+  opacity: 0;
+}
+
+.preview-dot {
+  width: var(--dot);
+  height: var(--dot);
+  background: var(--c);
+  border-radius: 50%;
+  box-shadow: 0 0 9px var(--c), 0 0 20px var(--c);
+}
+
+.preview-dot.big {
+  box-shadow: 0 0 12px var(--c), 0 0 28px var(--c), 0 0 45px var(--c);
+}
+
+.preview-streak {
+  width: var(--w);
+  height: var(--h);
+  border-radius: 999px;
+  background: linear-gradient(to right, transparent, var(--c), transparent);
+  box-shadow: 0 0 18px var(--c);
+}
+
+@keyframes previewRocketFlyLeft {
+  0% { opacity: 0; transform: translateX(calc(100% + 46px)); }
+  8% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { opacity: 0; transform: translateX(-64px); }
+}
+
+@keyframes previewTrailFlyLeft {
+  0% { opacity: 0; transform: translateX(calc(100% + 46px + var(--behind))) scale(.45); }
+  12% { opacity: var(--maxOpacity); }
+  54% { opacity: calc(var(--maxOpacity) * .85); }
+  100% { opacity: 0; transform: translateX(calc(-64px + var(--behind))) scale(.14); }
+}
+
+.preview-explosion {
+  position: relative;
+  width: 120px;
+  height: 96px;
+}
+
+.preview-explosion span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--s);
+  height: var(--s);
+  background: var(--c);
+  border-radius: 50%;
+  box-shadow: 0 0 12px var(--c);
+  animation: previewBurst var(--dur) ease-out infinite;
+  animation-delay: var(--delay);
+}
+
+.preview-explosion::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #ffb23a;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  animation: previewRing var(--dur) ease-out infinite;
+}
+
+@keyframes previewBurst {
+  0% { opacity: 0; transform: translate(-50%,-50%) rotate(var(--angle)) translateX(0) scale(.7); }
+  14% { opacity: 1; }
+  70% { opacity: .92; }
+  100% { opacity: 0; transform: translate(-50%,-50%) rotate(calc(var(--angle) + var(--twist))) translateX(var(--distance)) scale(.2); }
+}
+
+@keyframes previewRing {
+  0% { opacity: 0; width: 10px; height: 10px; }
+  20% { opacity: 1; }
+  100% { opacity: 0; width: var(--ring); height: var(--ring); }
+}
+
+.final-score-card {
+  border-color: rgba(255,210,80,.85);
+  background: rgba(4, 12, 18, .86);
+  box-shadow:
+    0 0 42px rgba(255,178,58,.34),
+    0 0 90px rgba(53,212,255,.22),
+    inset 0 0 35px rgba(255,255,255,.04);
+  backdrop-filter: blur(4px);
+}
+
+.final-score-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.final-score-grid div,
+.final-icon-row div {
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 14px;
+  padding: 8px;
+}
+
+.final-score-grid strong {
+  display: block;
+  color: var(--gold);
+  font-size: 20px;
+}
+
+.result-pop {
+  opacity: 0;
+  transform: translateY(12px) scale(.94);
+  animation: resultPop .42s ease-out forwards;
+  animation-delay: var(--delay);
+}
+
+@keyframes resultPop {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.final-icon-row {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.final-icon-row span {
+  display: block;
+  font-size: 22px;
+}
+
+.help-list {
+  text-align: left;
+  display: grid;
+  gap: 8px;
+}
+
+.help-list div {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.09);
+  border-radius: 14px;
+  padding: 9px;
+}
+
+@media (max-width: 390px), (max-height: 700px) {
+  .final-score-card {
+    width: min(96vw, 420px);
+    max-height: 88dvh;
+    padding: 12px;
+  }
+
+  .final-score-card h1 {
+    font-size: 24px;
+    margin-bottom: 2px;
+  }
+
+  .final-score-card h2 {
+    font-size: 17px;
+    margin: 0 0 4px;
+  }
+
+  .final-score-card p {
+    font-size: 12px;
+    line-height: 1.25;
+    margin: 5px 0;
+  }
+
+  .final-score-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+    margin: 6px 0;
+  }
+
+  .final-score-grid div {
+    padding: 5px;
+    font-size: 11px;
+    border-radius: 10px;
+  }
+
+  .final-score-grid strong {
+    font-size: 16px;
+  }
+
+  .final-icon-row {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 4px;
+  }
+
+  .final-icon-row div {
+    padding: 4px;
+    font-size: 10px;
+    border-radius: 10px;
+  }
+
+  .final-icon-row span {
+    font-size: 18px;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 520px) {
+  :root { --ground: 50px; }
+  #hud { font-size: 12px; }
+  .pill, button { padding: 5px 8px; font-size: 12px; }
+  #launcher { bottom: 25px; }
+  .card { max-height: 88dvh; }
+}
+
+@media (max-width: 390px) {
+  :root { --ground: 62px; }
+  #hud { font-size: 12px; }
+  .pill, button { padding: 6px 8px; font-size: 12px; }
+  #message { top: 86px; font-size: 12px; }
+  .shop-item { grid-template-columns: 1fr; }
+  .card { padding: 14px; }
+  .card h1 { font-size: 24px; }
+}
+</style>
+</head>
+
+<body>
+<div id="game">
+  <div id="starfield"></div>
+
+  <div id="hud">
+    <div class="stat-row">
+      <div class="pill">Lvl <span id="level">1</span></div>
+      <div class="pill">Run <span id="cycle">1</span></div>
+      <div class="pill">Lives <span id="lives">5</span></div>
+      <div class="pill">Credits <span id="coins">0</span></div>
+      <div class="pill"><span id="cleared">0</span>/<span id="total">8</span></div>
+    </div>
+    <div class="stat-row">
+      <button id="nextBtn" style="display:none">Next Level</button>
+      <button id="shopBtn">Shop</button>
+      <button id="pauseBtn">Pause</button>
+    </div>
+  </div>
+
+  <div id="message"></div>
+  <canvas id="gameOverCanvas"></canvas>
+  <div id="launcher"></div>
+  <div id="ground"></div>
+
+  <div id="overlay">
+    <div class="card">
+      <h1>🥩 Meat-eor Blaster</h1>
+      <p>
+        Tap meat-eors and meteors before they land. Do not tap bombs after the difficulty resets.
+        Bonus UFOs appear after half of some levels. The UFO is piloted by <strong>Zaqxen Rei</strong>,
+        so it flies awkwardly, unstable, and random.
+      </p>
+      <div class="button-row">
+        <button onclick="startGame()">Start Game</button>
+        <button onclick="showHelp()">Help & Instructions</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const game = document.getElementById("game");
+const overlay = document.getElementById("overlay");
+const ground = document.getElementById("ground");
+const message = document.getElementById("message");
+const launcher = document.getElementById("launcher");
+
+const ui = {
+  level: document.getElementById("level"),
+  cycle: document.getElementById("cycle"),
+  lives: document.getElementById("lives"),
+  coins: document.getElementById("coins"),
+  cleared: document.getElementById("cleared"),
+  total: document.getElementById("total"),
+  nextBtn: document.getElementById("nextBtn"),
+  shopBtn: document.getElementById("shopBtn"),
+  pauseBtn: document.getElementById("pauseBtn")
+};
+
+const meats = ["🍗", "🥩", "🍖"];
+const MAX_LEVEL = 12;
+const MAX_ROCKET_SIZE = 6;
+
+const explosionEffects = [
+  {
+    id: "classic", name: "Plain White Pop", cost: 20, unlockLevel: 1, minRocketSize: 1,
+    colors: ["#ffffff"], particles: 12, distanceBonus: 0, life: 430,
+    description: "Simple white particle pop. Better than no explosion."
+  },
+  {
+    id: "ember", name: "Ember Grill Burst", cost: 60, unlockLevel: 3, minRocketSize: 2,
+    colors: ["#ff5438", "#ff8a30", "#fff06a"], particles: 24, distanceBonus: 18, life: 620,
+    description: "Two-layer hot grill explosion."
+  },
+  {
+    id: "comet", name: "Comet Crackle", cost: 110, unlockLevel: 5, minRocketSize: 3,
+    colors: ["#35d4ff", "#ffffff", "#84ff8c", "#fff06a"], particles: 34, distanceBonus: 28, life: 760,
+    description: "Circular crackle ring with mixed bright particles."
+  },
+  {
+    id: "spiral", name: "Spiral Feast Nova", cost: 180, unlockLevel: 8, minRocketSize: 4,
+    colors: ["#35d4ff", "#84ff8c", "#fff06a", "#ff8a30", "#ffffff", "#ff5438"], particles: 46, distanceBonus: 40, life: 920,
+    description: "Swirling multi-color spiral with a larger blast."
+  },
+  {
+    id: "solar", name: "Solar Butcher Bloom", cost: 280, unlockLevel: 11, minRocketSize: 5,
+    colors: ["#ffffff", "#fff06a", "#ffb23a", "#ff5438", "#35d4ff", "#84ff8c"], particles: 58, distanceBonus: 54, life: 1120,
+    description: "Complex rays, rings, and dense colored fragments."
+  },
+  {
+    id: "ultimate", name: "Ultimate Meat-eor Apocalypse", cost: 520, unlockLevel: 12, minRocketSize: 6, requiresMaxRocket: true,
+    colors: ["#ffffff", "#fff06a", "#ffb23a", "#ff5438", "#35d4ff", "#84ff8c", "#2cffc7"], particles: 86, distanceBonus: 92, life: 1700,
+    description: "Grand lingering finale. Requires max Rocket Size."
+  }
+];
+
+const rocketTrails = [
+  {
+    id: "tiny", name: "Plain White Thread", cost: 0, unlockLevel: 1, minTrailLength: 1,
+    colors: ["#ffffff"], particleSize: 2.5, density: 1, spread: 1.5, lifeBonus: -35, streaks: 0,
+    description: "A simple thin white particle trail."
+  },
+  {
+    id: "blue", name: "Ion Spark Booster", cost: 35, unlockLevel: 2, minTrailLength: 2,
+    colors: ["#9ef2ff", "#35d4ff", "#ffffff"], particleSize: 5, density: 4, spread: 7, lifeBonus: 90, streaks: 1,
+    description: "Blue ion dots with a light booster streak."
+  },
+  {
+    id: "green", name: "Comet Crumb Stream", cost: 75, unlockLevel: 5, minTrailLength: 3,
+    colors: ["#d2ff72", "#54ff86", "#ffffff", "#2cffc7"], particleSize: 6, density: 5, spread: 10, lifeBonus: 150, streaks: 2,
+    description: "A thicker comet-like particle stream."
+  },
+  {
+    id: "inferno", name: "Inferno Ash Booster", cost: 130, unlockLevel: 9, minTrailLength: 5,
+    colors: ["#fff36a", "#ffb23a", "#ff5438", "#ffffff"], particleSize: 7, density: 7, spread: 14, lifeBonus: 240, streaks: 3,
+    description: "A wide burning trail with sparks and booster streaks."
+  }
+];
+
+const upgradeItems = [
+  {
+    key: "rocketSize", name: "Rocket Size",
+    desc: "Bigger rockets create wider blast radius and unlock grander explosions.",
+    base: 85, max: MAX_ROCKET_SIZE, unlockLevel: 1
+  },
+  {
+    key: "missiles", name: "Multi-Missile Tap",
+    desc: "Each extra tap launches one more rocket on the same locked target.",
+    base: 75, max: 4, unlockLevel: 4
+  },
+  {
+    key: "trailLength", name: "Trail Length",
+    desc: "Particles fade out slower, making the visible trail path longer.",
+    base: 45, max: 7, unlockLevel: 1
+  }
+];
+
+const state = {
+  running: false,
+  paused: false,
+  level: 1,
+  cycle: 1,
+  lives: 5,
+  coins: 0,
+  score: 0,
+  spawned: 0,
+  cleared: 0,
+  total: 8,
+  objects: [],
+  rockets: [],
+  ufos: [],
+  lastTime: 0,
+  spawnTimer: 0,
+  levelElapsed: 0,
+  completionGrace: 0,
+  bombsSpawned: 0,
+  bombQuota: 0,
+  nextReady: false,
+  levelCompleteShown: false,
+  completingLevel: false,
+  gameOverShown: false,
+  ufoSpawnedThisLevel: false,
+  ufoWillAppear: false,
+  ufoDelay: 0,
+  ufoIntroSeen: false,
+  ufoIntroPending: false,
+  ufoCaught: 0,
+  ufoLivesGained: 0,
+  stats: { steak: 0, chicken: 0, rib: 0, meteor: 0 },
+  upgrades: { rocketSize: 1, missiles: 1, trailLength: 1 },
+  ownedEffects: [],
+  selectedEffect: null,
+  ownedTrails: ["tiny"],
+  selectedTrail: "tiny",
+  pointerX: window.innerWidth / 2,
+  pointerY: window.innerHeight / 2
+};
+
+function updateUI() {
+  ui.level.textContent = state.level;
+  ui.cycle.textContent = state.cycle;
+  ui.lives.textContent = state.lives;
+  ui.coins.textContent = state.coins;
+  ui.cleared.textContent = state.cleared;
+  ui.total.textContent = state.total;
+}
+
+function setNextButtonVisible(visible) {
+  ui.nextBtn.style.display = visible ? "inline-block" : "none";
+}
+
+function showMessage(text) {
+  message.textContent = text;
+  message.classList.add("show");
+  clearTimeout(showMessage.timer);
+  showMessage.timer = setTimeout(() => message.classList.remove("show"), 1700);
+}
+
+function currentEffect() {
+  if (!state.selectedEffect) return null;
+  return explosionEffects.find(e => e.id === state.selectedEffect) || null;
+}
+
+function currentTrail() {
+  return rocketTrails.find(t => t.id === state.selectedTrail) || rocketTrails[0];
+}
+
+function initStarfield() {
+  const field = document.getElementById("starfield");
+  field.innerHTML = "";
+  const area = Math.max(window.innerWidth * window.innerHeight, 1);
+  const count = Math.min(170, Math.max(75, Math.floor(area / 6000)));
+  const cols = Math.ceil(Math.sqrt(count * window.innerWidth / Math.max(window.innerHeight, 1)));
+  const rows = Math.ceil(count / cols);
+
+  for (let i = 0; i < count; i++) {
+    const star = document.createElement("span");
+    const typeRoll = Math.random();
+    star.className = "star" + (typeRoll < 0.16 ? " warm" : typeRoll > 0.86 ? " cool" : "");
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const x = ((col + Math.random()) / cols) * 100;
+    const y = ((row + Math.random()) / rows) * 130 - 18;
+    const size = 0.8 + Math.random() * (Math.random() < 0.12 ? 3.3 : 1.4);
+    const speed = 10 + Math.random() * 52;
+
+    star.style.setProperty("--x", x.toFixed(2) + "vw");
+    star.style.setProperty("--y", y.toFixed(2) + "vh");
+    star.style.setProperty("--s", size.toFixed(2) + "px");
+    star.style.setProperty("--o", (0.18 + Math.random() * 0.82).toFixed(2));
+    star.style.setProperty("--glow", (size * (2 + Math.random() * 6)).toFixed(2) + "px");
+    star.style.setProperty("--speed", speed.toFixed(2) + "s");
+    star.style.setProperty("--twinkle", (0.7 + Math.random() * 3.8).toFixed(2) + "s");
+    star.style.setProperty("--delay", (-Math.random() * speed).toFixed(2) + "s");
+    star.style.setProperty("--dx", (Math.random() * 120 - 60).toFixed(1) + "px");
+
+    field.appendChild(star);
+  }
+}
+
+function clearField() {
+  document.querySelectorAll(".falling,.rocket,.explosion,.crosshair,.ufo,.trail-particle,.screen-boom").forEach(el => el.remove());
+}
+
+function desiredFallTime() {
+  const raw = 5.85 - state.level * 0.18 - (state.cycle - 1) * 0.2;
+  return Math.max(2.35, raw);
+}
+
+function levelSpeed() {
+  const fallDistance = Math.max(280, window.innerHeight - ground.offsetHeight + 80);
+  return fallDistance / desiredFallTime();
+}
+
+function spawnInterval() {
+  return Math.max(850 - state.level * 32 - (state.cycle - 1) * 24, 360);
+}
+
+function waveTotalForLevel(level) {
+  return Math.min(7 + level + Math.floor((state.cycle - 1) * 1.5), 26);
+}
+
+function bombQuotaForLevel() {
+  if (state.cycle <= 1) return 0;
+  return Math.min(state.cycle + Math.floor(state.level / 4), 7);
+}
+
+function blastRadius() {
+  const effect = currentEffect();
+  const visualBonus = effect ? effect.distanceBonus * 0.18 : 0;
+  return 16 + state.upgrades.rocketSize * 16 + visualBonus;
+}
+
+function rocketFontSize() {
+  return 13 + state.upgrades.rocketSize * 2.2;
+}
+
+function prepareUfoForLevel() {
+  if (state.level === 1 && state.cycle === 1 && !state.ufoIntroSeen) {
+    state.ufoWillAppear = true;
+    state.ufoIntroPending = true;
+    state.ufoDelay = 0;
+    return;
+  }
+
+  const chance = Math.min(0.28 + state.cycle * 0.04 + Math.floor(state.level / 5) * 0.06, 0.58);
+  state.ufoWillAppear = Math.random() < chance;
+  state.ufoIntroPending = false;
+  state.ufoDelay = 0;
+}
+
+
+window.showHelp = function() {
+  overlay.style.background = "rgba(0,0,0,.58)";
+  overlay.style.display = "grid";
+  overlay.innerHTML = `
+    <div class="card">
+      <h1>How to Play</h1>
+      <div class="help-list">
+        <div><strong>🥩 Steak Meat-eor</strong><br>Destroy for 3 credits. Counts toward your final meat collection.</div>
+        <div><strong>🍗 Chicken Meat-eor</strong><br>Destroy for 3 credits. Counts toward your final chicken collection.</div>
+        <div><strong>🍖 Rib Meat-eor</strong><br>Destroy for 3 credits. Counts toward your final rib collection.</div>
+        <div><strong>☄️ Meteor</strong><br>Destroy for 5 credits. Meteors are worth more than meat-eors.</div>
+        <div><strong>💣 Bomb</strong><br>Appears after the difficulty resets. Do not tap it or the game ends.</div>
+        <div><strong>🛸 UFO Bonus</strong><br>Appears randomly after half of some levels. Tap to break shields. Capturing it gives a big credit reward and extra lives.</div>
+        <div><strong>Multi-Missile Tap</strong><br>For meteors: lets you tap the same locked target multiple times, launching more rockets. For UFOs: each tap removes shields equal to your Multi-Missile level.</div>
+        <div><strong>Rocket Size</strong><br>Increases blast radius and unlocks grander explosion effects.</div>
+        <div><strong>Trail Length</strong><br>Makes rocket trail particles fade slower, creating longer visible trails and unlocking stronger trail styles.</div>
+      </div>
+      <div class="button-row">
+        <button onclick="backToTitle()">Back</button>
+        <button onclick="startGame()">Start Game</button>
+      </div>
+    </div>
+  `;
+};
+
+window.backToTitle = function() {
+  overlay.style.background = "rgba(0,0,0,.58)";
+  overlay.style.display = "grid";
+  overlay.innerHTML = `
+    <div class="card">
+      <h1>🥩 Meat-eor Blaster</h1>
+      <p>
+        Tap meat-eors and meteors before they land. Do not tap bombs after the difficulty resets.
+        Bonus UFOs appear after half of some levels. The UFO is piloted by <strong>Zaqxen Rei</strong>,
+        so it flies awkwardly, unstable, and random.
+      </p>
+      <div class="button-row">
+        <button onclick="startGame()">Start Game</button>
+        <button onclick="showHelp()">Help & Instructions</button>
+      </div>
+    </div>
+  `;
+};
+
+function startGame() {
+  clearField();
+  stopGameOverFireworks();
+
+  Object.assign(state, {
+    running: true,
+    paused: false,
+    level: 1,
+    cycle: 1,
+    lives: 5,
+    coins: 0,
+    score: 0,
+    spawned: 0,
+    cleared: 0,
+    total: waveTotalForLevel(1),
+    objects: [],
+    rockets: [],
+    ufos: [],
+    lastTime: performance.now(),
+    spawnTimer: 0,
+    levelElapsed: 0,
+    completionGrace: 0,
+    bombsSpawned: 0,
+    bombQuota: bombQuotaForLevel(),
+    nextReady: false,
+    levelCompleteShown: false,
+    completingLevel: false,
+    gameOverShown: false,
+    ufoSpawnedThisLevel: false,
+    ufoIntroSeen: false,
+    ufoIntroPending: false,
+    ufoCaught: 0,
+    ufoLivesGained: 0,
+    stats: { steak: 0, chicken: 0, rib: 0, meteor: 0 }
+  });
+
+  prepareUfoForLevel();
+  setNextButtonVisible(false);
+  ui.pauseBtn.textContent = "Pause";
+  overlay.style.background = "rgba(0,0,0,.58)";
+  overlay.style.display = "none";
+  updateUI();
+  requestAnimationFrame(loop);
+}
+
+function startLevel() {
+  clearField();
+  stopGameOverFireworks();
+
+  Object.assign(state, {
+    paused: false,
+    spawned: 0,
+    cleared: 0,
+    total: waveTotalForLevel(state.level),
+    objects: [],
+    rockets: [],
+    ufos: [],
+    spawnTimer: 0,
+    levelElapsed: 0,
+    completionGrace: 0,
+    bombsSpawned: 0,
+    bombQuota: bombQuotaForLevel(),
+    nextReady: false,
+    levelCompleteShown: false,
+    completingLevel: false,
+    ufoSpawnedThisLevel: false
+  });
+
+  prepareUfoForLevel();
+  setNextButtonVisible(false);
+  state.lastTime = performance.now();
+  overlay.style.background = "rgba(0,0,0,.58)";
+  overlay.style.display = "none";
+  ui.pauseBtn.textContent = "Pause";
+  updateUI();
+  showMessage("Level " + state.level + " started!");
+}
+
+function shouldSpawnBomb() {
+  if (state.bombQuota <= 0 || state.bombsSpawned >= state.bombQuota || state.spawned < 2) return false;
+  return Math.random() < 0.2 + state.cycle * 0.03;
+}
+
+function spawnObject() {
+  if (state.spawned >= state.total) return;
+
+  const isBomb = shouldSpawnBomb();
+  const isMeat = !isBomb && Math.random() < 0.68;
+
+  const el = document.createElement("div");
+  el.className = "falling " + (isBomb ? "bomb" : isMeat ? "meat" : "meteor");
+  const emoji = isBomb ? "💣" : isMeat ? meats[Math.floor(Math.random() * meats.length)] : "☄️";
+  el.textContent = emoji;
+
+  const size = Math.min(Math.max(window.innerWidth * 0.11, 42), 54);
+  const x = Math.random() * Math.max(1, window.innerWidth - size - 18) + 9;
+  const y = -70;
+
+  el.style.left = x + "px";
+  el.style.top = y + "px";
+
+  const obj = {
+    el,
+    x,
+    y,
+    size,
+    speed: levelSpeed() * (0.92 + Math.random() * 0.18),
+    reward: isBomb ? 0 : isMeat ? 3 : 5,
+    emoji,
+    type: isBomb ? "bomb" : isMeat ? "meat" : "meteor",
+    counted: false,
+    frozen: false,
+    lockedX: null,
+    lockedY: null,
+    crosshair: null,
+    rocketsLaunched: 0
+  };
+
+  el.addEventListener("pointerdown", e => {
+    e.stopPropagation();
+    updatePointer(e.clientX, e.clientY);
+    if (obj.type === "bomb") triggerBombGameOver();
+    else lockTarget(obj);
+  });
+
+  game.appendChild(el);
+  state.objects.push(obj);
+  state.spawned++;
+  if (isBomb) state.bombsSpawned++;
+}
+
+function lockTarget(obj) {
+  if (!state.running || state.paused || !obj || obj.counted) return;
+
+  if (!obj.frozen) {
+    obj.frozen = true;
+    obj.lockedX = obj.x + obj.size / 2;
+    obj.lockedY = obj.y + obj.size / 2;
+    obj.el.style.opacity = "0.88";
+    obj.el.style.animationPlayState = "paused";
+    obj.crosshair = createCrosshair(obj.lockedX, obj.lockedY);
+  }
+
+  if (obj.rocketsLaunched >= state.upgrades.missiles) {
+    showMessage("Max rockets locked on this target!");
+    return;
+  }
+
+  obj.rocketsLaunched++;
+  launchRocket(obj, obj.lockedX, obj.lockedY, false);
+}
+
+function createCrosshair(x, y) {
+  const ch = document.createElement("div");
+  ch.className = "crosshair";
+  ch.style.left = x + "px";
+  ch.style.top = y + "px";
+  game.appendChild(ch);
+  return ch;
+}
+
+function launchRocket(target, tx, ty, isSpecialUfo = false) {
+  const rocket = document.createElement("div");
+  rocket.className = "rocket";
+  rocket.innerHTML = `<span class="body">🚀</span>`;
+
+  const startX = window.innerWidth / 2;
+  const startY = window.innerHeight - 74;
+
+  rocket.style.left = startX + "px";
+  rocket.style.top = startY + "px";
+  rocket.style.fontSize = (isSpecialUfo ? rocketFontSize() + 8 : rocketFontSize()) + "px";
+
+  game.appendChild(rocket);
+
+  state.rockets.push({
+    el: rocket,
+    x: startX,
+    y: startY,
+    lastX: startX,
+    lastY: startY,
+    tx,
+    ty,
+    target,
+    isSpecialUfo,
+    speed: isSpecialUfo ? 1500 : 900 + state.upgrades.rocketSize * 80,
+    trailTimer: 999
+  });
+}
+
+function createRocketTrailParticle(x, y, backX = 0, backY = 1, core = false) {
+  const trail = currentTrail();
+  const p = document.createElement("div");
+  const color = trail.colors[Math.floor(Math.random() * trail.colors.length)];
+  const size = trail.particleSize + (core ? 2.5 : 0) + Math.random() * 2;
+  const life = 170 + state.upgrades.trailLength * 95 + trail.lifeBonus;
+  const sideX = -backY;
+  const sideY = backX;
+  const along = Math.random() * (8 + state.upgrades.trailLength * 7);
+  const side = (Math.random() - 0.5) * trail.spread;
+
+  const px = x + backX * along + sideX * side;
+  const py = y + backY * along + sideY * side;
+
+  p.className = "trail-particle" + (core ? " core" : "");
+  p.style.setProperty("--x", px + "px");
+  p.style.setProperty("--y", py + "px");
+  p.style.setProperty("--size", size + "px");
+  p.style.setProperty("--color", color);
+  p.style.setProperty("--life", life + "ms");
+  p.style.setProperty("--drift-x", (backX * (18 + Math.random() * 26) + (Math.random() - 0.5) * 8) + "px");
+  p.style.setProperty("--drift-y", (backY * (18 + Math.random() * 26) + (Math.random() - 0.5) * 8) + "px");
+
+  game.appendChild(p);
+  setTimeout(() => p.remove(), life + 80);
+}
+
+function updateObjects(dt) {
+  const groundTop = window.innerHeight - ground.offsetHeight;
+
+  state.objects = state.objects.filter(obj => {
+    if (!obj.frozen) {
+      obj.y += obj.speed * dt;
+      obj.el.style.top = obj.y + "px";
+    }
+
+    if (obj.crosshair) {
+      obj.crosshair.style.left = obj.lockedX + "px";
+      obj.crosshair.style.top = obj.lockedY + "px";
+    }
+
+    if (!obj.frozen && obj.y + obj.size >= groundTop) {
+      if (obj.counted) return false;
+      obj.counted = true;
+      if (obj.crosshair) obj.crosshair.remove();
+      obj.el.remove();
+
+      if (obj.type !== "bomb") {
+        state.lives--;
+        document.body.classList.add("damage-flash");
+        setTimeout(() => document.body.classList.remove("damage-flash"), 300);
+      }
+
+      state.cleared++;
+      updateUI();
+
+      if (state.lives <= 0) gameOver();
+      else checkLevelComplete();
+
+      return false;
+    }
+
+    return true;
+  });
+}
+
+function updateRockets(dt, onlySpecial = false) {
+  state.rockets = state.rockets.filter(r => {
+    if (onlySpecial && !r.isSpecialUfo) return true;
+    if (!r.el || !document.body.contains(r.el)) return false;
+
+    const dx = r.tx - r.x;
+    const dy = r.ty - r.y;
+    const dist = Math.hypot(dx, dy) || 1;
+
+    const angle = Math.atan2(dy, dx);
+    r.el.style.transform = `rotate(${angle}rad)`;
+
+    if (dist < 26 + state.upgrades.rocketSize * 3) {
+      r.el.remove();
+
+      if (r.isSpecialUfo) {
+        specialUfoExplosion(r.tx, r.ty, r.target);
+        return false;
+      }
+
+      createExplosion(r.tx, r.ty);
+      applyBlastDamage(r.tx, r.ty);
+
+      if (r.target && !r.target.counted) {
+        destroyObject(r.target, true);
+      }
+
+      return false;
+    }
+
+    const step = Math.min(dist, r.speed * dt);
+    r.lastX = r.x;
+    r.lastY = r.y;
+    r.x += (dx / dist) * step;
+    r.y += (dy / dist) * step;
+
+    const moveDx = r.x - r.lastX;
+    const moveDy = r.y - r.lastY;
+    const moveDist = Math.hypot(moveDx, moveDy) || 1;
+    const backX = -moveDx / moveDist;
+    const backY = -moveDy / moveDist;
+
+    r.trailTimer += dt * 1000;
+    const trail = currentTrail();
+    const particleDelay = Math.max(16, 54 - trail.density * 4 - state.upgrades.trailLength * 2);
+
+    if (r.trailTimer >= particleDelay) {
+      r.trailTimer = 0;
+      createRocketTrailParticle(r.x, r.y, backX, backY, true);
+      for (let i = 0; i < trail.density; i++) createRocketTrailParticle(r.x, r.y, backX, backY, false);
+    }
+
+    r.el.style.left = r.x + "px";
+    r.el.style.top = r.y + "px";
+    return true;
+  });
+}
+
+function destroyObject(obj, reward) {
+  if (!obj || obj.counted) return;
+  obj.counted = true;
+  if (obj.crosshair) obj.crosshair.remove();
+  if (obj.el && document.body.contains(obj.el)) obj.el.remove();
+  state.objects = state.objects.filter(o => o !== obj);
+
+  if (reward) {
+    state.coins += obj.reward;
+    state.score += obj.reward * 10 + state.level * 2 + state.cycle * 5;
+
+    if (obj.type === "meteor") {
+      state.stats.meteor++;
+    } else if (obj.emoji === "🥩") {
+      state.stats.steak++;
+    } else if (obj.emoji === "🍗") {
+      state.stats.chicken++;
+    } else if (obj.emoji === "🍖") {
+      state.stats.rib++;
+    }
+  }
+
+  state.cleared++;
+  updateUI();
+  checkLevelComplete();
+}
+
+function applyBlastDamage(x, y) {
+  const effect = currentEffect();
+  if (!effect) return;
+  const radius = blastRadius();
+
+  [...state.objects].forEach(obj => {
+    if (!obj.el || !document.body.contains(obj.el) || obj.type === "bomb" || obj.counted) return;
+    const cx = obj.frozen ? obj.lockedX : obj.x + obj.size / 2;
+    const cy = obj.frozen ? obj.lockedY : obj.y + obj.size / 2;
+    if (Math.hypot(cx - x, cy - y) <= radius) {
+      destroyObject(obj, true);
+      createExplosion(cx, cy, 0.55);
+    }
+  });
+}
+
+function createExplosion(x, y, scale = 1) {
+  const effect = currentEffect();
+  if (!effect) return;
+
+  const wrap = document.createElement("div");
+  wrap.className = "explosion";
+  wrap.style.left = x + "px";
+  wrap.style.top = y + "px";
+
+  const particles = Math.floor((effect.particles + state.upgrades.rocketSize * 4) * scale);
+  const distance = (32 + effect.distanceBonus + state.upgrades.rocketSize * 8) * scale;
+  const ring = blastRadius() * 2.1 * scale;
+  const life = Math.floor(effect.life * scale);
+
+  const shock = document.createElement("div");
+  shock.className = "shockwave";
+  shock.style.borderColor = effect.colors[0];
+  shock.style.setProperty("--ring", ring + "px");
+  shock.style.setProperty("--life", life + "ms");
+  wrap.appendChild(shock);
+
+  for (let i = 0; i < particles; i++) {
+    const p = document.createElement("div");
+    p.className = "burst";
+    p.style.setProperty("--c", effect.colors[Math.floor(Math.random() * effect.colors.length)]);
+    p.style.setProperty("--s", (4 + Math.random() * 6) + "px");
+    p.style.setProperty("--angle", (360 / particles * i + Math.random() * 18) + "deg");
+    p.style.setProperty("--start", "0px");
+    p.style.setProperty("--distance", (distance + Math.random() * 28) + "px");
+    p.style.setProperty("--life", (life + Math.random() * 260) + "ms");
+    p.style.setProperty("--twist", (effect.id === "spiral" || effect.id === "ultimate" ? 160 : 0) + "deg");
+    wrap.appendChild(p);
+  }
+
+  game.appendChild(wrap);
+  setTimeout(() => wrap.remove(), effect.life + 650);
+}
+
+function createMeatExplosion(x, y) {
+  /*
+    One huge isolated UFO reward blast.
+    The game is paused during this, but we keep it to a single burst so it feels grand
+    without the stutter caused by several separate explosions.
+  */
+  const style = document.createElement("style");
+  style.textContent = `
+    @keyframes meatBurst {
+      0% {
+        opacity: 0;
+        transform: translate(-50%,-50%) rotate(var(--angle)) translateX(0) scale(.25) rotate(0deg);
+      }
+      7% {
+        opacity: 1;
+      }
+      42% {
+        opacity: 1;
+        filter: drop-shadow(0 0 20px var(--glow));
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%,-50%) rotate(var(--angle)) translateX(var(--distance)) scale(.2) rotate(var(--spin));
+      }
+    }
+
+    @keyframes meatScreenFlash {
+      0% { opacity: 0; transform: scale(.25); }
+      10% { opacity: .95; transform: scale(1); }
+      100% { opacity: 0; transform: scale(1.45); }
+    }
+  `;
+
+  const master = document.createElement("div");
+  master.className = "explosion";
+  master.style.left = x + "px";
+  master.style.top = y + "px";
+  master.style.zIndex = "23";
+  master.appendChild(style);
+
+  const flash = document.createElement("div");
+  flash.style.position = "absolute";
+  flash.style.left = "50%";
+  flash.style.top = "50%";
+  flash.style.width = "42vmax";
+  flash.style.height = "42vmax";
+  flash.style.borderRadius = "50%";
+  flash.style.background = "radial-gradient(circle, rgba(255,255,255,.95), rgba(255,178,58,.45) 30%, rgba(255,84,56,.24) 54%, transparent 72%)";
+  flash.style.transform = "translate(-50%, -50%)";
+  flash.style.animation = "meatScreenFlash 1250ms ease-out forwards";
+  master.appendChild(flash);
+
+  const meats = ["🥩", "🍗", "🍖", "🥓", "🍔", "🌭", "✨", "💥", "🔥"];
+  const glowColors = ["#ffb23a", "#ff5438", "#fff06a", "#35d4ff", "#84ff8c", "#ffffff"];
+  const particleCount = 88;
+  const maxDistance = Math.max(window.innerWidth, window.innerHeight) * 0.82;
+
+  for (let i = 0; i < particleCount; i++) {
+    const p = document.createElement("div");
+    const meat = meats[Math.floor(Math.random() * meats.length)];
+    const glow = glowColors[Math.floor(Math.random() * glowColors.length)];
+
+    p.textContent = meat;
+    p.style.position = "absolute";
+    p.style.left = "50%";
+    p.style.top = "50%";
+
+    /*
+      Mix tiny crumbs and huge meats so the single blast still fills the screen.
+      Most particles are small/medium; some are large hero chunks.
+    */
+    const sizeRoll = Math.random();
+
+    /*
+      Make meat readable: most particles are now medium/large meat chunks,
+      with only a few tiny sparkle crumbs.
+    */
+    const isSpark = meat === "✨" || meat === "💥" || meat === "🔥";
+    const fontSize = isSpark
+      ? 18 + Math.random() * 18
+      : sizeRoll > 0.78
+        ? 54 + Math.random() * 32
+        : sizeRoll > 0.34
+          ? 34 + Math.random() * 22
+          : 24 + Math.random() * 14;
+
+    p.style.fontSize = fontSize + "px";
+    p.style.setProperty("--angle", (i * 360 / particleCount + Math.random() * 20) + "deg");
+    p.style.setProperty("--distance", (80 + Math.random() * maxDistance) + "px");
+    p.style.setProperty("--spin", (Math.random() * 900 - 450) + "deg");
+    p.style.setProperty("--glow", glow);
+    p.style.animation = `meatBurst ${1650 + Math.random() * 900}ms cubic-bezier(.13,.72,.2,1) forwards`;
+    p.style.animationDelay = (Math.random() * 140) + "ms";
+    p.style.filter = "drop-shadow(0 0 14px " + glow + ")";
+    master.appendChild(p);
+  }
+
+  for (let ring = 0; ring < 5; ring++) {
+    const shock = document.createElement("div");
+    shock.className = "shockwave";
+    shock.style.borderColor = glowColors[ring % glowColors.length];
+    shock.style.setProperty("--ring", (220 + ring * 180) + "px");
+    shock.style.setProperty("--life", (850 + ring * 210) + "ms");
+    shock.style.animationDelay = (ring * 70) + "ms";
+    master.appendChild(shock);
+  }
+
+  game.appendChild(master);
+  setTimeout(() => master.remove(), 2800);
+}
+
+function maybeSpawnUfo() {
+  if (state.paused || state.nextReady || state.completingLevel) return;
+  if (!state.ufoWillAppear || state.ufoSpawnedThisLevel) return;
+  if (state.spawned < Math.ceil(state.total / 2)) return;
+
+  state.ufoSpawnedThisLevel = true;
+
+  if (state.ufoIntroPending && !state.ufoIntroSeen) {
+    showUfoIntro();
+  } else {
+    spawnUfo();
+  }
+}
+
+function showUfoIntro() {
+  state.paused = true;
+  state.ufoIntroSeen = true;
+  state.ufoIntroPending = false;
+
+  const shields = ufoShieldCount();
+  const speed = ufoSpeed();
+  const reward = ufoReward(shields);
+
+  overlay.style.display = "grid";
+  overlay.innerHTML = `
+    <div class="card">
+      <h1>Bonus UFO Incoming 🛸</h1>
+      <p>
+        A glowing bonus meat bundle is being carried by a UFO. It appears after half of the level,
+        flies randomly around the screen, and escapes if you do not catch it.
+      </p>
+      <p>
+        The UFO has <strong>${shields} shield${shields === 1 ? "" : "s"}</strong>.
+        Tap it to remove shields. Multi-Missile Tap removes more UFO shields per tap.
+        When the shield breaks, the game pauses and a special rocket destroys it with a heavy meat explosion.
+      </p>
+      <p>
+        Reward this time: <strong>${reward} credits</strong> plus <strong>${ufoLifeReward()} extra life/lives</strong>. Current UFO speed rating:
+        <strong>${Math.round(speed)}</strong>.
+      </p>
+      <p>
+        As level and run cycle increase, the UFO becomes faster, gains more shields, and gives higher rewards.
+      </p>
+      <p>
+        Fun side note: the UFO is piloted by <strong>Zaqxen Rei</strong>, which explains the unstable flying.
+      </p>
+      <button onclick="startIntroUfo()">Start UFO Bonus</button>
+    </div>
+  `;
+}
+
+window.startIntroUfo = function() {
+  overlay.style.display = "none";
+  state.paused = false;
+  state.lastTime = performance.now();
+  spawnUfo();
+};
+
+function ufoShieldCount() {
+  /*
+    Starts with 1 shield so the first encounter is easy to understand.
+    Higher levels and later run cycles add more shields.
+  */
+  return 1 + Math.floor(state.level / 3) + state.cycle - 1;
+}
+
+function ufoSpeed() {
+  return 145 + state.level * 13 + state.cycle * 20;
+}
+
+function ufoReward(shields) {
+  return 55 + state.level * 10 + state.cycle * 35 + shields * 12;
+}
+
+function ufoLifeReward() {
+  return Math.max(1, Math.min(5, 1 + Math.floor(state.level / 4) + Math.floor((state.cycle - 1) / 2)));
+}
+
+function spawnUfo() {
+  const el = document.createElement("div");
+  el.className = "ufo";
+  const shields = ufoShieldCount();
+  el.innerHTML = `<div class="shield">${shields}</div><div class="bundle">🥩🍗🍖</div>`;
+
+  const safeTop = Math.max(82, window.innerHeight * 0.14);
+  const safeBottom = Math.max(safeTop + 40, Math.min(window.innerHeight - ground.offsetHeight - 95, window.innerHeight * 0.68));
+  const safeLeft = 24;
+  const safeRight = Math.max(safeLeft + 120, window.innerWidth - 120);
+  const x = safeLeft + Math.random() * Math.max(1, safeRight - safeLeft);
+  const y = safeTop + Math.random() * Math.max(1, safeBottom - safeTop);
+  const angle = Math.random() * Math.PI * 2;
+  const speed = ufoSpeed();
+
+  Object.assign(el.style, { left: x + "px", top: y + "px" });
+
+  const ufo = {
+    el, x, y,
+    vx: Math.cos(angle) * speed,
+    vy: Math.sin(angle) * speed,
+    age: 0,
+    roamTime: 6.5,
+    escapeTime: 2.2,
+    shields,
+    reward: ufoReward(shields),
+    escaping: false,
+    changeTimer: 0,
+    safeTop, safeBottom, safeLeft, safeRight,
+    frozen: false,
+    destroyed: false,
+    lastTapAt: 0
+  };
+
+  el.addEventListener("pointerdown", e => {
+    e.stopPropagation();
+    updatePointer(e.clientX, e.clientY);
+    tapUfo(ufo);
+  });
+
+  game.appendChild(el);
+  state.ufos.push(ufo);
+  ufoSay(ufo, "Zaqxen Rei is flying!");
+  setTimeout(() => ufoSay(ufo, "Wobble mode ON!"), 1300);
+  showMessage("Shielded bonus UFO! Tap it " + shields + " times!");
+}
+
+function tapUfo(ufo) {
+  if (!state.running || state.paused || !ufo || ufo.destroyed || ufo.escaping) return;
+
+  const now = performance.now();
+  if (ufo.lastTapAt && now - ufo.lastTapAt < 180) return;
+  ufo.lastTapAt = now;
+
+  const shieldDamage = Math.max(1, state.upgrades.missiles);
+  ufo.shields -= shieldDamage;
+  const badge = ufo.el.querySelector(".shield");
+  if (badge) badge.textContent = Math.max(0, ufo.shields);
+
+  createHitSpark(ufo.x + 48, ufo.y + 30);
+
+  if (ufo.shields > 0) {
+    const comments = [
+      "Shield activated!",
+      "Nice try, meat hunter!",
+      "My shield says nope!",
+      "Bonk! Still flying!",
+      "Zaqxen dodged that!"
+    ];
+    ufoSay(ufo, comments[Math.floor(Math.random() * comments.length)] + " -" + shieldDamage + " shield!");
+    showMessage("UFO shields hit for " + shieldDamage + " — " + ufo.shields + " left!");
+
+    /*
+      Do not let holding/clicking trap the UFO in one spot.
+      A valid hit makes it dodge harder and change course.
+    */
+    const speed = Math.max(ufoSpeed(), Math.hypot(ufo.vx, ufo.vy) * 1.18);
+    const angle = Math.random() * Math.PI * 2;
+    ufo.vx = Math.cos(angle) * speed;
+    ufo.vy = Math.sin(angle) * speed;
+    ufo.changeTimer = -0.25;
+  } else {
+    beginSpecialUfoDestruction(ufo);
+  }
+}
+
+function beginSpecialUfoDestruction(ufo) {
+  if (ufo.destroyed) return;
+
+  ufo.destroyed = true;
+  ufo.frozen = true;
+  state.paused = true;
+
+  ufo.vx = 0;
+  ufo.vy = 0;
+  ufoSay(ufo, "Shield down!");
+
+  /*
+    Shield is down: pause gameplay and immediately launch the special rocket.
+    The main loop keeps special rockets moving even while paused.
+  */
+  overlay.style.display = "none";
+  showMessage("UFO shield down! Special rocket launched!");
+
+  launchRocket(ufo, ufo.x + 48, ufo.y + 30, true);
+  state.lastTime = performance.now();
+}
+
+function updateUfos(dt) {
+  state.ufos = state.ufos.filter(ufo => {
+    if (ufo.destroyed || ufo.frozen) return true;
+
+    ufo.age += dt;
+    ufo.changeTimer += dt;
+
+    if (!ufo.escaping && ufo.age >= ufo.roamTime) {
+      ufo.escaping = true;
+      ufo.age = 0;
+      const exit = Math.random() < 0.5 ? -180 : window.innerWidth + 180;
+      const dx = exit - ufo.x;
+      const dy = (ufo.y + (Math.random() - 0.5) * 120) - ufo.y;
+      const dist = Math.hypot(dx, dy) || 1;
+      const speed = Math.hypot(ufo.vx, ufo.vy) * 1.45;
+      ufo.vx = dx / dist * speed;
+      ufo.vy = dy / dist * speed;
+      ufoSay(ufo, "Bye bye! 🛸");
+      showMessage("The bonus UFO escaped. Bye bye!");
+    }
+
+    if (!ufo.escaping && ufo.changeTimer > 0.55 + Math.random() * 0.45) {
+      ufo.changeTimer = 0;
+      const speed = Math.hypot(ufo.vx, ufo.vy) * (0.94 + Math.random() * 0.16);
+      const angle = Math.atan2(ufo.vy, ufo.vx) + (Math.random() - 0.5) * 1.35;
+      ufo.vx = Math.cos(angle) * speed;
+      ufo.vy = Math.sin(angle) * speed;
+    }
+
+    ufo.x += ufo.vx * dt;
+    ufo.y += ufo.vy * dt;
+
+    if (!ufo.escaping) {
+      if (ufo.x < ufo.safeLeft) { ufo.x = ufo.safeLeft; ufo.vx = Math.abs(ufo.vx); }
+      if (ufo.x > ufo.safeRight) { ufo.x = ufo.safeRight; ufo.vx = -Math.abs(ufo.vx); }
+      if (ufo.y < ufo.safeTop) { ufo.y = ufo.safeTop; ufo.vy = Math.abs(ufo.vy); }
+      if (ufo.y > ufo.safeBottom) { ufo.y = ufo.safeBottom; ufo.vy = -Math.abs(ufo.vy); }
+    }
+
+    ufo.el.style.left = ufo.x + "px";
+    ufo.el.style.top = ufo.y + "px";
+
+    if (ufo.escaping && ufo.age > ufo.escapeTime) {
+      ufo.el.remove();
+      return false;
+    }
+
+    return true;
+  });
+}
+
+function ufoSay(ufo, text) {
+  if (!ufo || !ufo.el || !document.body.contains(ufo.el)) return;
+  const old = ufo.el.querySelector(".speech");
+  if (old) old.remove();
+  const bubble = document.createElement("div");
+  bubble.className = "speech";
+  bubble.textContent = text;
+  ufo.el.appendChild(bubble);
+  setTimeout(() => bubble.remove(), 1200);
+}
+
+function createHitSpark(x, y) {
+  const wrap = document.createElement("div");
+  wrap.className = "explosion";
+  wrap.style.left = x + "px";
+  wrap.style.top = y + "px";
+  for (let i = 0; i < 8; i++) {
+    const p = document.createElement("div");
+    p.className = "burst";
+    p.style.setProperty("--c", i % 2 ? "#35d4ff" : "#ffffff");
+    p.style.setProperty("--s", "5px");
+    p.style.setProperty("--angle", (i * 45) + "deg");
+    p.style.setProperty("--start", "0px");
+    p.style.setProperty("--distance", "32px");
+    p.style.setProperty("--life", "360ms");
+    p.style.setProperty("--twist", "0deg");
+    wrap.appendChild(p);
+  }
+  game.appendChild(wrap);
+  setTimeout(() => wrap.remove(), 450);
+}
+
+function specialUfoExplosion(x, y, ufo) {
+  state.paused = true;
+  createMeatExplosion(x, y);
+
+  if (ufo && ufo.el && document.body.contains(ufo.el)) ufo.el.remove();
+  state.ufos = state.ufos.filter(u => u !== ufo);
+
+  const reward = ufo ? ufo.reward : 100;
+  const extraLives = ufoLifeReward();
+  state.coins += reward;
+  state.score += reward * 12 + state.level * 20;
+  state.ufoCaught++;
+  state.ufoLivesGained += extraLives;
+  state.lives += extraLives;
+  updateUI();
+
+  setTimeout(() => {
+    overlay.style.display = "grid";
+    overlay.innerHTML = `
+      <div class="card">
+        <h1>🥩 Huge Meat Obtained!</h1>
+        <p>
+          Congratulations! Zaqxen Rei's UFO exploded into a giant meat firework show.
+        </p>
+        <p>
+          Bonus credits gained: <strong>${reward}</strong><br>
+          Extra lives gained: <strong>${extraLives}</strong><br>
+          Total credits now: <strong>${state.coins}</strong>
+        </p>
+        <p>
+          The bonus reward is complete. Press Continue to un-pause and return to the level.
+        </p>
+        <div class="button-row">
+          <button onclick="continueAfterUfo()">Continue</button>
+        </div>
+      </div>
+    `;
+  }, 2100);
+}
+
+window.continueAfterUfo = function() {
+  overlay.style.display = "none";
+
+  checkCompletionFailsafe(0, true);
+  if (state.nextReady) {
+    showLevelComplete();
+    return;
+  }
+
+  state.paused = false;
+  state.lastTime = performance.now();
+};
+
+function remainingFallingObjects() {
+  return state.objects.filter(obj => obj.el && document.body.contains(obj.el)).length;
+}
+
+function removeAllActiveObjectsForCompletion() {
+  state.objects.forEach(obj => {
+    if (obj.crosshair) obj.crosshair.remove();
+    if (obj.el && document.body.contains(obj.el)) obj.el.remove();
+  });
+  state.objects = [];
+  state.rockets.forEach(r => {
+    if (r.el && document.body.contains(r.el)) r.el.remove();
+  });
+  state.rockets = [];
+}
+
+function levelCompletionConditionMet() {
+  if (state.cleared >= state.total) return true;
+  return state.spawned >= state.total && remainingFallingObjects() === 0;
+}
+
+function setNextLevelReady(reason = "Level complete!") {
+  if (!state.running || state.nextReady) return;
+  state.nextReady = true;
+  state.completingLevel = true;
+  state.paused = true;
+  setNextButtonVisible(true);
+  ui.pauseBtn.textContent = "Resume";
+  state.cleared = Math.max(state.cleared, state.total);
+  updateUI();
+  showMessage(reason);
+
+  if (!state.levelCompleteShown) {
+    state.levelCompleteShown = true;
+    setTimeout(showLevelComplete, 180);
+  }
+}
+
+function checkCompletionFailsafe(dt = 0, force = false) {
+  if (!state.running || state.nextReady) return;
+
+  /*
+    Completion is intentionally strict:
+    - destroyed objects increment cleared
+    - objects that hit the ground increment cleared
+    - the level ends only when cleared >= total
+    This prevents the game from ending while untouched meteors are still on screen.
+  */
+  if (state.cleared >= state.total) {
+    removeAllActiveObjectsForCompletion();
+    updateUI();
+    setNextLevelReady("Level complete!");
+    return;
+  }
+
+  /*
+    Safe fallback only when every object was spawned AND none remain on screen.
+    This catches DOM/removal glitches without counting visible meteors early.
+  */
+  if (state.spawned >= state.total && remainingFallingObjects() === 0) {
+    state.cleared = Math.max(state.cleared, state.total);
+    updateUI();
+    setNextLevelReady("Level complete!");
+    return;
+  }
+
+  state.completionGrace = 0;
+}
+
+function checkLevelComplete() {
+  checkCompletionFailsafe(0, true);
+}
+
+function getUnlocksForLevel(level) {
+  const unlocked = [];
+  explosionEffects.forEach(e => { if (e.unlockLevel === level) unlocked.push("Explosion: " + e.name); });
+  rocketTrails.forEach(t => { if (t.unlockLevel === level) unlocked.push("Trail: " + t.name); });
+  upgradeItems.forEach(u => { if (u.unlockLevel === level) unlocked.push("Upgrade: " + u.name); });
+  return unlocked;
+}
+
+function showLevelComplete() {
+  state.nextReady = true;
+  state.levelCompleteShown = true;
+  setNextButtonVisible(true);
+  const atMax = state.level >= MAX_LEVEL;
+  const next = atMax ? 1 : state.level + 1;
+  const upcomingUnlocks = atMax ? [] : getUnlocksForLevel(next);
+  const unlockText = upcomingUnlocks.length
+    ? `<p><strong>Next level unlocks:</strong><br>${upcomingUnlocks.join("<br>")}</p>`
+    : atMax
+      ? `<p><strong>Difficulty reset incoming:</strong> Level returns to 1, but bombs are added. Do not tap bombs.</p>`
+      : `<p>No new shop unlock next level, but rewards and difficulty increase.</p>`;
+
+  const affordAnything = canBuyAnything();
+
+  overlay.style.display = "grid";
+  overlay.innerHTML = `
+    <div class="card">
+      <h1>Level ${state.level} Cleared!</h1>
+      <p>You have <strong>${state.coins}</strong> credits.</p>
+      ${unlockText}
+      ${affordAnything ? `<p>Visit the shop before continuing?</p>` : `<p><strong>Not enough credits to buy anything yet.</strong></p>`}
+      <div class="button-row">
+        <button onclick="openShop(true)">Shop Upgrades</button>
+        <button onclick="advanceAfterLevel()">Continue</button>
+      </div>
+    </div>
+  `;
+}
+
+window.advanceAfterLevel = function() {
+  if (!state.running) return;
+  if (state.level >= MAX_LEVEL) {
+    state.level = 1;
+    state.cycle++;
+    showMessage("Difficulty reset! Bombs increased.");
+  } else {
+    state.level++;
+  }
+  startLevel();
+};
+
+function canBuyEffect(effect) {
+  if (state.ownedEffects.includes(effect.id)) return false;
+  if (state.level < effect.unlockLevel) return false;
+  if (state.upgrades.rocketSize < effect.minRocketSize) return false;
+  if (effect.requiresMaxRocket && state.upgrades.rocketSize < MAX_ROCKET_SIZE) return false;
+  return state.coins >= effect.cost;
+}
+
+function canBuyTrail(trail) {
+  if (state.ownedTrails.includes(trail.id)) return false;
+  if (state.level < trail.unlockLevel) return false;
+  if (state.upgrades.trailLength < trail.minTrailLength) return false;
+  return state.coins >= trail.cost;
+}
+
+function canBuyAnything() {
+  for (const item of upgradeItems) {
+    const lvl = state.upgrades[item.key];
+    if (state.level >= item.unlockLevel && lvl < item.max && state.coins >= item.base * lvl) return true;
+  }
+  for (const e of explosionEffects) if (canBuyEffect(e)) return true;
+  for (const t of rocketTrails) if (canBuyTrail(t)) return true;
+  return false;
+}
+
+function explosionPreviewHtml(effect) {
+  const count = Math.min(effect.particles, effect.id === "ultimate" ? 44 : 30);
+  const dur = (effect.life / 1000).toFixed(2) + "s";
+  const spans = [];
+
+  for (let i = 0; i < count; i++) {
+    spans.push(`
+      <span style="
+        --c:${effect.colors[i % effect.colors.length]};
+        --angle:${(360 / count) * i}deg;
+        --distance:${20 + effect.distanceBonus * .45 + (i % 7) * 4}px;
+        --s:${3 + (i % 5)}px;
+        --delay:${(i % 9) * .035}s;
+        --dur:${dur};
+        --twist:${effect.id === "spiral" || effect.id === "ultimate" ? 160 : 0}deg;
+      "></span>
+    `);
+  }
+
+  return `
+    <div class="preview">
+      <div class="preview-explosion" style="--ring:${70 + effect.distanceBonus * .55}px; --dur:${dur};">
+        ${spans.join("")}
+      </div>
+    </div>
+  `;
+}
+
+function trailPreviewHtml(trail) {
+  const pieces = [];
+  const isBasic = trail.id === "tiny";
+  const count = isBasic ? 10 : 12 + trail.density * 4;
+  const fadeScale = Math.max(1, Math.min(state.upgrades.trailLength, trail.minTrailLength || 1));
+  const baseBehind = isBasic ? 18 : 30;
+
+  for (let i = 0; i < count; i++) {
+    const behind = baseBehind + i * (isBasic ? 4.5 : 5.5 + trail.streaks) * (0.72 + fadeScale * 0.13);
+    pieces.push(`
+      <span class="preview-dot ${!isBasic && i % 5 === 0 ? "big" : ""}" style="
+        --c:${trail.colors[i % trail.colors.length]};
+        --delay:${(i % 10) * .045}s;
+        --dot:${Math.max(2.4, trail.particleSize + (!isBasic && i % 5 === 0 ? 2 : 0))}px;
+        --behind:${behind}px;
+        --top:${44 + Math.sin(i * 1.65) * trail.spread * .35}px;
+        --maxOpacity:${isBasic ? .72 : .95};
+      "></span>
+    `);
+  }
+
+  if (!isBasic) {
+    for (let i = 0; i < trail.streaks; i++) {
+      pieces.push(`
+        <span class="preview-streak" style="
+          --c:${trail.colors[(i + 1) % trail.colors.length]};
+          --delay:${(i * .09).toFixed(2)}s;
+          --behind:${54 + i * 28}px;
+          --top:${42 + i * 5}px;
+          --w:${30 + i * 13}px;
+          --h:${3 + i}px;
+          --maxOpacity:.85;
+        "></span>
+      `);
+    }
+  }
+
+  return `
+    <div class="preview">
+      <div class="preview-trail">
+        ${pieces.join("")}
+        <div class="preview-rocket"><span>🚀</span></div>
+      </div>
+    </div>
+  `;
+}
+
+function openShop(fromLevelEnd = false) {
+  if (state.running) {
+    checkCompletionFailsafe(0, true);
+    if (state.nextReady && !fromLevelEnd) {
+      showLevelComplete();
+      return;
+    }
+    state.paused = true;
+  }
+
+  const upgradeHtml = upgradeItems.map(item => {
+    const lvl = state.upgrades[item.key];
+    const cost = item.base * lvl;
+    const maxed = lvl >= item.max;
+    const levelOk = state.level >= item.unlockLevel;
+    const canBuy = levelOk && !maxed && state.coins >= cost;
+    const status = maxed ? "Maxed" : !levelOk ? "Unlocks at level " + item.unlockLevel : canBuy ? "Available" : "Need " + cost + " credits";
+
+    return `
+      <div class="shop-item ${canBuy ? "" : "locked"}">
+        <div>
+          <strong>${item.name}</strong>
+          <div>${item.desc}</div>
+          <small>Level ${lvl}/${item.max} · ${status}${!maxed && levelOk ? " · Cost " + cost : ""}</small>
+        </div>
+        <button ${canBuy ? "" : "disabled"} onclick="buyUpgrade('${item.key}', ${fromLevelEnd})">
+          ${maxed ? "Maxed" : !levelOk ? "Locked" : canBuy ? "Buy" : "Need " + cost}
+        </button>
+      </div>
+    `;
+  }).join("");
+
+  const effectsHtml = explosionEffects.map(effect => {
+    const owned = state.ownedEffects.includes(effect.id);
+    const selected = state.selectedEffect === effect.id;
+    const levelOk = state.level >= effect.unlockLevel;
+    const sizeOk = state.upgrades.rocketSize >= effect.minRocketSize;
+    const maxOk = !effect.requiresMaxRocket || state.upgrades.rocketSize >= MAX_ROCKET_SIZE;
+    const canBuy = canBuyEffect(effect);
+    let status = owned ? "Purchased" : !levelOk ? "Locked by level" : !sizeOk ? "Needs Rocket Size " + effect.minRocketSize : !maxOk ? "Needs max Rocket Size" : state.coins < effect.cost ? "Need " + effect.cost + " credits" : "Unlocked";
+
+    return `
+      <div class="shop-item ${selected ? "selected" : ""} ${owned || canBuy ? "" : "locked"}">
+        <div>
+          <strong>${effect.name}</strong>
+          <div>${effect.description}</div>
+          <small>${owned ? "Ready to equip" : `${status} · Unlock level ${effect.unlockLevel} · Rocket Size ${effect.minRocketSize}+ · Cost ${effect.cost}`}</small>
+          ${explosionPreviewHtml(effect)}
+        </div>
+        <button ${owned || canBuy ? "" : "disabled"} onclick="${owned ? `selectEffect('${effect.id}', ${fromLevelEnd})` : `buyEffect('${effect.id}', ${fromLevelEnd})`}">
+          ${selected ? "Using" : owned ? "Use" : canBuy ? "Buy" : status}
+        </button>
+      </div>
+    `;
+  }).join("");
+
+  const trailsHtml = rocketTrails.map(trail => {
+    const owned = state.ownedTrails.includes(trail.id);
+    const selected = state.selectedTrail === trail.id;
+    const levelOk = state.level >= trail.unlockLevel;
+    const lengthOk = state.upgrades.trailLength >= trail.minTrailLength;
+    const canBuy = canBuyTrail(trail);
+    let status = owned ? "Purchased" : !levelOk ? "Unlocks at level " + trail.unlockLevel : !lengthOk ? "Needs Trail Length " + trail.minTrailLength : state.coins < trail.cost ? "Need " + trail.cost + " credits" : "Unlocked";
+
+    return `
+      <div class="shop-item ${selected ? "selected" : ""} ${owned || canBuy ? "" : "locked"}">
+        <div>
+          <strong>${trail.name}</strong>
+          <div>${trail.description}</div>
+          <small>${owned ? "Ready to equip" : `${status} · Unlock level ${trail.unlockLevel} · Trail Length ${trail.minTrailLength}+ · Cost ${trail.cost}`}</small>
+          ${trailPreviewHtml(trail)}
+        </div>
+        <button ${owned || canBuy ? "" : "disabled"} onclick="${owned ? `selectTrail('${trail.id}', ${fromLevelEnd})` : `buyTrail('${trail.id}', ${fromLevelEnd})`}">
+          ${selected ? "Using" : owned ? "Use" : canBuy ? "Buy" : status}
+        </button>
+      </div>
+    `;
+  }).join("");
+
+  overlay.style.background = "rgba(0,0,0,.58)";
+  overlay.style.display = "grid";
+  overlay.innerHTML = `
+    <div class="card">
+      <h1>Rocket Workshop</h1>
+      <p>Credits: <strong>${state.coins}</strong></p>
+
+      <h2>Upgrades</h2>
+      <div class="shop-grid">${upgradeHtml}</div>
+
+      <h2>Explosion Effects</h2>
+      <p>You start with no explosion effect. Every effect has a Rocket Size requirement.</p>
+      <div class="shop-grid">${effectsHtml}</div>
+
+      <h2>Rocket Trails</h2>
+      <p>Trail previews fly from right to left. Particles come from the rear booster. Advanced trails require higher Trail Length.</p>
+      <div class="shop-grid">${trailsHtml}</div>
+
+      <div class="button-row">
+        <button onclick="${fromLevelEnd ? "advanceAfterLevel()" : "closeShop()"}">${fromLevelEnd ? "Continue to Next Level" : state.running ? "Back to Battle" : "Back"}</button>
+      </div>
+    </div>
+  `;
+}
+
+window.closeShop = function() {
+  if (!state.running) {
+    overlay.style.display = "grid";
+    overlay.innerHTML = `
+      <div class="card">
+        <h1>🥩 Meat-eor Blaster</h1>
+        <p>
+          Tap meat-eors and meteors before they land. The UFO is piloted by <strong>Zaqxen Rei</strong>,
+          so it flies awkwardly, unstable, and random. This game is dedicated to him.
+        </p>
+        <div class="button-row">
+          <button onclick="startGame()">Start Game</button>
+          <button onclick="showHelp()">Help & Instructions</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
+  overlay.style.display = "none";
+  state.paused = false;
+  state.lastTime = performance.now();
+};
+
+window.buyUpgrade = function(key, fromLevelEnd = false) {
+  const item = upgradeItems.find(i => i.key === key);
+  const lvl = state.upgrades[key];
+  const cost = item.base * lvl;
+  if (lvl >= item.max) return;
+  if (state.level < item.unlockLevel) return showMessage(item.name + " unlocks at level " + item.unlockLevel);
+  if (state.coins < cost) return showMessage("Not enough credits!");
+  state.coins -= cost;
+  state.upgrades[key]++;
+  updateUI();
+  openShop(fromLevelEnd);
+};
+
+window.buyEffect = function(id, fromLevelEnd = false) {
+  const effect = explosionEffects.find(e => e.id === id);
+  if (!canBuyEffect(effect)) return showMessage("Requirement not met.");
+  state.coins -= effect.cost;
+  state.ownedEffects.push(id);
+  state.selectedEffect = id;
+  updateUI();
+  openShop(fromLevelEnd);
+};
+
+window.selectEffect = function(id, fromLevelEnd = false) {
+  if (!state.ownedEffects.includes(id)) return;
+  state.selectedEffect = id;
+  openShop(fromLevelEnd);
+};
+
+window.buyTrail = function(id, fromLevelEnd = false) {
+  const trail = rocketTrails.find(t => t.id === id);
+  if (!trail) return;
+  if (state.level < trail.unlockLevel) return showMessage("Locked until level " + trail.unlockLevel);
+  if (state.upgrades.trailLength < trail.minTrailLength) return showMessage("Upgrade Trail Length to " + trail.minTrailLength + " first!");
+  if (state.coins < trail.cost) return showMessage("Not enough credits!");
+  state.coins -= trail.cost;
+  state.ownedTrails.push(id);
+  state.selectedTrail = id;
+  updateUI();
+  openShop(fromLevelEnd);
+};
+
+window.selectTrail = function(id, fromLevelEnd = false) {
+  if (!state.ownedTrails.includes(id)) return;
+  state.selectedTrail = id;
+  openShop(fromLevelEnd);
+};
+
+function triggerBombGameOver() {
+  const boom = document.createElement("div");
+  boom.className = "screen-boom";
+  game.appendChild(boom);
+  setTimeout(gameOver, 650);
+}
+
+function gameOver() {
+  if (!state.running && state.gameOverShown) return;
+  state.gameOverShown = true;
+  state.running = false;
+  state.paused = true;
+  setNextButtonVisible(false);
+  startGameOverFireworks();
+
+  const ownedExplosionNames = state.ownedEffects.length
+    ? state.ownedEffects.map(id => explosionEffects.find(e => e.id === id)?.name).filter(Boolean).join(", ")
+    : "None yet";
+  const ownedTrailNames = state.ownedTrails.map(id => rocketTrails.find(t => t.id === id)?.name).filter(Boolean).join(", ");
+
+  const delay = (i) => `style="--delay:${(i * 0.14).toFixed(2)}s"`;
+
+  overlay.style.display = "grid";
+  overlay.style.background = "rgba(0, 0, 0, .18)";
+  overlay.innerHTML = `
+    <div class="card final-score-card">
+      <h1 class="result-pop" ${delay(0)}>🎆 Congratulations!</h1>
+      <h2 class="result-pop" ${delay(1)}>Final Results</h2>
+
+      <div class="final-score-grid">
+        <div class="result-pop" ${delay(2)}><strong>${state.score}</strong>Total Score</div>
+        <div class="result-pop" ${delay(3)}><strong>${state.coins}</strong>Final Credits</div>
+        <div class="result-pop" ${delay(4)}><strong>${state.level}</strong>Level Reached</div>
+        <div class="result-pop" ${delay(5)}><strong>${state.cycle}</strong>Run Cycle</div>
+        <div class="result-pop" ${delay(6)}><strong>${state.ufoCaught || 0}</strong>UFOs Caught</div>
+        <div class="result-pop" ${delay(7)}><strong>${state.ufoLivesGained || 0}</strong>UFO Lives Gained</div>
+        <div class="result-pop" ${delay(8)}><strong>${state.upgrades.rocketSize}/${MAX_ROCKET_SIZE}</strong>Rocket Size</div>
+        <div class="result-pop" ${delay(9)}><strong>${state.upgrades.missiles}/4</strong>Multi-Missile</div>
+        <div class="result-pop" ${delay(10)}><strong>${state.upgrades.trailLength}/7</strong>Trail Length</div>
+        <div class="result-pop" ${delay(11)}><strong>${state.ownedEffects.length}</strong>Effects</div>
+      </div>
+
+      <div class="final-icon-row">
+        <div class="result-pop" ${delay(12)}><span>🥩</span>${state.stats?.steak || 0}</div>
+        <div class="result-pop" ${delay(13)}><span>🍗</span>${state.stats?.chicken || 0}</div>
+        <div class="result-pop" ${delay(14)}><span>🍖</span>${state.stats?.rib || 0}</div>
+        <div class="result-pop" ${delay(15)}><span>☄️</span>${state.stats?.meteor || 0}</div>
+        <div class="result-pop" ${delay(16)}><span>🛸</span>${state.ufoCaught || 0}</div>
+      </div>
+
+      <p class="result-pop" ${delay(17)}><strong>Effects:</strong> ${ownedExplosionNames}</p>
+      <p class="result-pop" ${delay(18)}><strong>Trails:</strong> ${ownedTrailNames}</p>
+
+      <div class="button-row result-pop" ${delay(19)}>
+        <button onclick="location.reload()">Try Again</button>
+      </div>
+    </div>
+  `;
+}
+
+let gameOverFireworks = { running: false, raf: null, ctx: null, canvas: null, fireworks: [], particles: [], last: 0, launchTimer: 0 };
+
+function startGameOverFireworks() {
+  const canvas = document.getElementById("gameOverCanvas");
+  const ctx = canvas.getContext("2d");
+  gameOverFireworks = { running: true, raf: null, ctx, canvas, fireworks: [], particles: [], last: performance.now(), launchTimer: 0 };
+  resizeGameOverCanvas();
+  canvas.style.display = "block";
+  for (let i = 0; i < 6; i++) setTimeout(() => launchGameOverFirework(true), i * 180);
+  gameOverFireworks.raf = requestAnimationFrame(gameOverFireworksLoop);
+}
+
+function stopGameOverFireworks() {
+  if (gameOverFireworks.raf) cancelAnimationFrame(gameOverFireworks.raf);
+  gameOverFireworks.running = false;
+  const canvas = document.getElementById("gameOverCanvas");
+  if (canvas) {
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvas.style.display = "none";
+  }
+}
+
+function resizeGameOverCanvas() {
+  const canvas = document.getElementById("gameOverCanvas");
+  if (!canvas) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.floor(window.innerWidth * dpr);
+  canvas.height = Math.floor(window.innerHeight * dpr);
+  canvas.style.width = window.innerWidth + "px";
+  canvas.style.height = window.innerHeight + "px";
+  canvas.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function randomFireworkColor() {
+  return ["#ffffff", "#fff06a", "#ffb23a", "#ff5438", "#35d4ff", "#84ff8c", "#2cffc7", "#ff8a30"][Math.floor(Math.random() * 8)];
+}
+
+function launchGameOverFirework(instant = false) {
+  const w = window.innerWidth, h = window.innerHeight;
+  const targetX = 60 + Math.random() * Math.max(100, w - 120);
+  const targetY = 60 + Math.random() * Math.max(120, h * 0.48);
+  const startX = w * (0.2 + Math.random() * 0.6);
+  const startY = h + 20;
+  gameOverFireworks.fireworks.push({ x: startX, y: startY, px: startX, py: startY, tx: targetX, ty: targetY, speed: instant ? 760 : 560 + Math.random() * 180, color: randomFireworkColor(), type: Math.floor(Math.random() * 5) });
+}
+
+function burstGameOverFirework(x, y, color, type) {
+  const count = [70, 95, 120, 150, 190][type] || 100;
+  const rings = type >= 3 ? 2 : 1;
+  for (let ring = 0; ring < rings; ring++) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.PI * 2 * i / count + ring * .08;
+      const speed = (type === 4 ? 90 : 55) + Math.random() * (type === 4 ? 230 : 150) + ring * 45;
+      const chosen = type === 0 ? "#ffffff" : i % 4 === 0 ? randomFireworkColor() : color;
+      const spiral = type === 2 || type === 4;
+      gameOverFireworks.particles.push({
+        x, y, px: x, py: y,
+        vx: Math.cos(angle) * speed + (spiral ? -Math.sin(angle) * 35 : 0),
+        vy: Math.sin(angle) * speed + (spiral ? Math.cos(angle) * 35 : 0),
+        life: 1.25 + Math.random() * (type === 4 ? 1.55 : .9),
+        maxLife: 1.25 + Math.random() * 1.25,
+        color: chosen,
+        size: 1.2 + Math.random() * (type === 4 ? 3.8 : 2.4),
+        gravity: 60 + Math.random() * 55,
+        drag: .985 - Math.random() * .012
+      });
+    }
+  }
+}
+
+function gameOverFireworksLoop(now) {
+  if (!gameOverFireworks.running) return;
+  const fw = gameOverFireworks;
+  const ctx = fw.ctx;
+  const dt = Math.min((now - fw.last) / 1000, .033);
+  fw.last = now;
+
+  ctx.globalCompositeOperation = "source-over";
+  ctx.fillStyle = "rgba(0,5,9,.18)";
+  ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+
+  fw.launchTimer += dt;
+  if (fw.launchTimer > .38) {
+    fw.launchTimer = 0;
+    launchGameOverFirework();
+    if (Math.random() < .35) setTimeout(() => launchGameOverFirework(), 100);
+  }
+
+  ctx.globalCompositeOperation = "lighter";
+
+  fw.fireworks = fw.fireworks.filter(f => {
+    f.px = f.x; f.py = f.y;
+    const dx = f.tx - f.x, dy = f.ty - f.y;
+    const dist = Math.hypot(dx, dy) || 1;
+    const step = f.speed * dt;
+    f.x += dx / dist * step; f.y += dy / dist * step;
+    ctx.strokeStyle = f.color; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(f.px, f.py); ctx.lineTo(f.x, f.y); ctx.stroke();
+    if (dist < 14) { burstGameOverFirework(f.tx, f.ty, f.color, f.type); return false; }
+    return true;
+  });
+
+  fw.particles = fw.particles.filter(p => {
+    p.px = p.x; p.py = p.y;
+    p.vx *= p.drag; p.vy = p.vy * p.drag + p.gravity * dt;
+    p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt;
+    const alpha = Math.max(0, p.life / p.maxLife);
+    ctx.globalAlpha = alpha;
+    ctx.strokeStyle = p.color; ctx.lineWidth = p.size;
+    ctx.beginPath(); ctx.moveTo(p.px, p.py); ctx.lineTo(p.x, p.y); ctx.stroke();
+    ctx.globalAlpha = alpha * .85;
+    ctx.fillStyle = p.color; ctx.beginPath(); ctx.arc(p.x, p.y, p.size * .7, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+    return p.life > 0;
+  });
+
+  fw.raf = requestAnimationFrame(gameOverFireworksLoop);
+}
+
+function updatePointer(x, y) {
+  state.pointerX = x;
+  state.pointerY = y;
+  const baseX = window.innerWidth / 2;
+  const baseY = window.innerHeight - 74;
+  const angle = Math.atan2(y - baseY, x - baseX);
+  launcher.style.transform = `translateX(-50%) rotate(${angle + Math.PI / 2}rad)`;
+}
+
+function pauseForRotation() {
+  if (!state.running) return;
+  state.paused = true;
+  ui.pauseBtn.textContent = "Resume";
+  overlay.style.display = "grid";
+  overlay.innerHTML = `
+    <div class="card">
+      <h1>Screen Rotated</h1>
+      <p>
+        Game paused. Landscape gives a wider field. Falling speed scales with screen height,
+        so portrait does not get an unfair advantage.
+      </p>
+      <button onclick="resumeAfterRotation()">Resume</button>
+    </div>
+  `;
+}
+
+window.resumeAfterRotation = function() {
+  overlay.style.display = "none";
+  state.paused = false;
+  ui.pauseBtn.textContent = "Pause";
+  state.lastTime = performance.now();
+};
+
+function loop(now) {
+  if (!state.running) return;
+
+  const dt = Math.min((now - state.lastTime) / 1000, .033);
+  state.lastTime = now;
+
+  if (!state.paused) {
+    state.spawnTimer += dt * 1000;
+    state.levelElapsed += dt;
+
+    if (state.spawned < state.total && state.spawnTimer >= spawnInterval()) {
+      state.spawnTimer = 0;
+      spawnObject();
+    }
+
+    maybeSpawnUfo();
+    updateObjects(dt);
+    updateUfos(dt);
+    updateRockets(dt);
+    checkCompletionFailsafe(dt);
+  } else {
+    /*
+      Paused usually freezes gameplay, but the UFO reward cinematic must keep running:
+      shield breaks -> pause -> special rocket flies -> meat fireworks -> reward prompt.
+    */
+    updateRockets(dt, true);
+  }
+
+  requestAnimationFrame(loop);
+}
+
+game.addEventListener("pointermove", e => updatePointer(e.clientX, e.clientY));
+game.addEventListener("pointerdown", e => updatePointer(e.clientX, e.clientY));
+
+ui.shopBtn.addEventListener("click", () => openShop(false));
+
+ui.pauseBtn.addEventListener("click", () => {
+  if (!state.running) return;
+  checkCompletionFailsafe(0, true);
+  if (state.nextReady) { showLevelComplete(); return; }
+  state.paused = !state.paused;
+  ui.pauseBtn.textContent = state.paused ? "Resume" : "Pause";
+  showMessage(state.paused ? "Paused" : "Resumed");
+  state.lastTime = performance.now();
+});
+
+ui.nextBtn.addEventListener("click", () => {
+  if (state.running) advanceAfterLevel();
+});
+
+window.addEventListener("orientationchange", () => setTimeout(pauseForRotation, 250));
+
+let resizeTimer;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    initStarfield();
+    resizeGameOverCanvas();
+    if (state.running) pauseForRotation();
+  }, 320);
+});
+
+window.startGame = startGame;
+window.openShop = openShop;
+
+initStarfield();
+updateUI();
+</script>
+</body>
+</html>
