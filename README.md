@@ -1,16 +1,73 @@
 # Meat-eor Blaster
 
-**Meat-eor Blaster** is a single-file HTML arcade game where you defend the planet from falling meat-eors and meteors using rocket lock-on attacks, upgradeable trails, explosions, and special UFO bonus events.
+**Meat-eor Blaster** is a single-file HTML arcade game where you defend the planet from falling meat-eors and meteors using rocket lock-on attacks, upgradeable trails, blast-radius explosions, special UFO bonus events, bomb hazards, and share-ready final results.
 
 ![Meat-eor Blaster screenshot](screenshot.png)
+
+## Play Online
+
+[Play Meat-eor Blaster](https://zaqxen.github.io/meat-eor-blaster/)
 
 ## How to Play
 
 - Tap or click falling meat-eors and meteors before they hit the ground.
 - Tapping a target locks it in place and launches a rocket.
-- If a meat-eor or meteor reaches the ground, you lose a life.
-- Bombs appear after difficulty resets. Do **not** tap bombs.
-- Bombs are not affected by explosion radius; only direct tapping triggers game over.
+- You can tap the same locked target multiple times based on your **Multi-Missile Tap** level.
+- Mobile multi-touch is supported, so multiple fingers can hit multiple targets at once.
+- If a meat-eor or meteor reaches the ground, you lose a life and it counts as a missed target.
+- Bombs are extra hazards and do **not** count toward the required target total.
+- Bombs are not affected by explosion radius; only direct tapping triggers bomb danger.
+- The final score screen is designed to fit small mobile screens for easy screenshots and sharing.
+
+## Game Modes
+
+### Normal Mode
+
+- Easier starting pace.
+- Bombs begin appearing only after the first 12-level difficulty cycle.
+- Good for casual play and learning the mechanics.
+
+### Hard Mode
+
+- Selected only at the beginning of a run.
+- Uses a red theme.
+- Faster falling objects.
+- More targets per level.
+- More bombs.
+- Bombs can appear from level 1.
+- Final results show that the run was completed in Hard Mode.
+
+## Levels and Difficulty
+
+- The displayed level keeps increasing: 1, 2, 3 ... 100 and beyond.
+- Internally, difficulty cycles every 12 levels.
+- Every difficulty reset adds more pressure through more targets and more bomb hazards.
+- Every 100 levels, the player receives a milestone congratulations message from developer **Mark Morgan**.
+
+## Scoring, Rank, and Final Results
+
+The final result card shows:
+
+- Player name, entered after game over.
+- Date and time with a 3-letter month.
+- Total score.
+- Rank.
+- Mode.
+- Level reached.
+- Run cycle.
+- Credits.
+- UFOs caught and missed.
+- Missed targets.
+- Upgrade levels.
+- Bomb immunity remaining.
+- Meat, chicken, rib, meteor, and UFO collection icons.
+
+Ranking considers both score and clean play:
+
+- Hard Mode receives a score multiplier bonus.
+- Missed meat-eors and meteors reduce the ranking score.
+- Missed UFOs reduce the ranking score more heavily.
+- **S+ requires no missed targets and no missed UFOs.**
 
 ## Scoring and Rewards
 
@@ -18,6 +75,19 @@
 - ☄️ Meteors: worth more credits than meat-eors.
 - 🛸 UFOs: bonus event that appears randomly after half of some levels.
 - Capturing a UFO grants bonus credits and extra lives.
+- Every 1000 credits earned grants 1 bomb immunity.
+
+## Bombs and Bomb Immunity
+
+- Bombs are extra hazards, not part of the meat-eor/meteor target count.
+- Bombs are ignored by explosion radius.
+- Directly tapping a bomb normally ends the game.
+- If you have bomb immunity, an accidental bomb tap is blocked.
+- Using bomb immunity costs:
+  - 1000 credits
+  - 1 Rocket Size level
+  - 1 Multi-Missile Tap level
+- Rocket Size and Multi-Missile Tap cannot drop below level 1.
 
 ## UFO Bonus
 
@@ -25,20 +95,73 @@ The UFO is piloted by **Zaqxen Rei**, which explains why it flies awkwardly, uns
 
 - The UFO starts with 1 shield.
 - Higher levels and later run cycles increase UFO shields and speed.
+- UFO shields are capped so the bonus remains possible:
+  - Normal Mode max shield: 7
+  - Hard Mode max shield: 9
+- As UFO shields increase, the UFO stays longer so players have time to capture it.
 - Multi-Missile Tap helps catch the UFO by removing more shields per tap.
-- Once shields reach 0, the game pauses for a special rocket hit and a big meat explosion reward scene.
+- Once shields reach 0, the game pauses for a special rocket hit and a large comedic meat explosion reward scene.
 
 ## Upgrades
 
-- **Rocket Size**: increases blast radius and unlocks grander explosion effects.
+- **Rocket Size**: increases the rocket's visual size and blast radius. Bigger rocket means bigger blast.
 - **Multi-Missile Tap**: lets you tap the same locked target multiple times, launching more rockets. Also removes more UFO shields per tap.
 - **Trail Length**: makes rocket trails last longer and unlocks stronger trail visuals.
-- **Explosion Effects**: optional visual upgrades unlocked by level and Rocket Size.
+- **Explosion Effects**: visual blast upgrades unlocked by level and Rocket Size.
 - **Rocket Trails**: cosmetic trail styles unlocked by level and Trail Length.
+
+If the player maxes out an upgrade or upgrade category, the game congratulates them.
+
+## Starter Pack
+
+The player starts with a default starter explosion effect:
+
+- A simple expanding white circle.
+- Shows the current blast radius clearly.
+- Helps the player understand how Rocket Size affects blast range.
+
+## Shop and Workshop
+
+- The Rocket Workshop lets players buy upgrades, explosion effects, and rocket trails.
+- Credits stay visible at the top while scrolling the shop.
+- When no upgrades or effects are currently affordable, **Shop Upgrades** becomes **View Upgrades**.
+- Shop, Help, Pause, and Workshop screens are scrollable on mobile when needed.
+
+## HUD and Pause Screen
+
+During gameplay, the HUD uses compact icons:
+
+- ⭐ Level
+- 🔁 Run cycle
+- ❤️ Lives
+- 🪙 Credits
+- 🎯 Targets cleared
+
+The Pause screen expands these icons into full text and also shows:
+
+- UFOs captured
+- Bomb immunity
+- Current mode
+- Continue button
+- Shop button
+
+## Developer Note
+
+This game concept, design, and logic were created by **Mark Morgan**.
+
+It is dedicated to his son, **Zaqxen Rei**, the pilot of the awkward, unpredictable UFO.
+
+A small **?** button inside the game shows this developer and dedication information.
 
 ## Mobile Notes
 
-The game is designed to work on small mobile screens, including iPhone SE-sized displays. It supports portrait and landscape, and pauses on resize/rotation so the player can resume safely.
+The game is designed to work on small mobile screens, including iPhone SE-sized displays.
+
+- Gameplay is no-scroll so taps and multi-touch feel responsive.
+- Final result is no-scroll and compact for screenshots.
+- Help, Pause, Workshop, and other information screens can scroll when needed.
+- The game supports portrait and landscape.
+- It pauses on resize/rotation so the player can resume safely.
 
 ## Run Locally
 
@@ -49,7 +172,3 @@ open index.html
 ```
 
 Or just double-click the HTML file.
-
-## Play Online directly here 
-
-[Play Meat-eor Blaster](https://zaqxen.github.io/meat-eor-blaster/)
