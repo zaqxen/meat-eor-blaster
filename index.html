@@ -21,6 +21,7 @@
   box-sizing: border-box;
   user-select: none;
   -webkit-tap-highlight-color: transparent;
+  touch-action: none;
 }
 
 body {
@@ -37,7 +38,7 @@ body {
   height: 100dvh;
   min-height: 100vh;
   overflow: hidden;
-  touch-action: manipulation;
+  touch-action: none;
 }
 
 #starfield {
@@ -214,7 +215,7 @@ button:disabled {
   border-radius: 50%;
   font-size: clamp(29px, 8vw, 38px);
   z-index: 12;
-  touch-action: manipulation;
+  touch-action: none;
   filter: drop-shadow(0 9px 8px rgba(0,0,0,.45));
   animation: wobble .7s ease-in-out infinite alternate;
 }
@@ -395,7 +396,7 @@ button:disabled {
   font-size: 36px;
   filter: drop-shadow(0 0 18px rgba(255,210,70,.8));
   animation: ufoGlow .45s infinite alternate;
-  touch-action: manipulation;
+  touch-action: none;
 }
 
 .ufo::before {
@@ -984,6 +985,214 @@ body.hard-mode button {
   animation: previewRing var(--dur) ease-out infinite;
 }
 
+
+.name-input {
+  width: min(88vw, 320px);
+  padding: 11px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,178,58,.55);
+  background: rgba(0,0,0,.32);
+  color: var(--text);
+  font-weight: 900;
+  text-align: center;
+  outline: none;
+  margin: 8px auto 2px;
+  display: block;
+}
+
+.name-input::placeholder {
+  color: rgba(245,247,232,.58);
+}
+
+.final-score-card.share-card {
+  width: min(96vw, 390px);
+  max-height: min(94dvh, 620px);
+  overflow: hidden;
+  padding: 10px;
+  border-radius: 18px;
+}
+
+.share-title {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1;
+}
+
+.share-subtitle {
+  margin: 2px 0 4px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.share-name {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  align-items: center;
+  padding: 6px 8px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.1);
+  font-size: 11px;
+  margin: 4px 0;
+}
+
+.share-name strong {
+  color: var(--gold);
+  font-size: 14px;
+  max-width: 178px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.share-score-row {
+  display: grid;
+  grid-template-columns: 1.1fr .9fr;
+  gap: 5px;
+  margin: 5px 0;
+}
+
+.share-score-row div {
+  padding: 7px 5px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.11);
+  font-size: 10px;
+}
+
+.share-score-row strong {
+  display: block;
+  color: var(--gold);
+  font-size: 22px;
+  line-height: 1;
+}
+
+.share-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin: 5px 0;
+}
+
+.share-mini-grid div {
+  border-radius: 10px;
+  padding: 5px 2px;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.09);
+  font-size: 9px;
+  line-height: 1.05;
+}
+
+.share-mini-grid strong {
+  display: block;
+  color: var(--gold);
+  font-size: 14px;
+  line-height: 1.05;
+}
+
+.share-icons {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+  margin: 5px 0;
+}
+
+.share-icons div {
+  border-radius: 10px;
+  padding: 4px 2px;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.09);
+  font-size: 11px;
+}
+
+.share-icons span {
+  display: block;
+  font-size: 18px;
+  line-height: 1.05;
+}
+
+.share-actions {
+  margin-top: 6px;
+}
+
+.share-actions button {
+  padding: 7px 12px;
+  font-size: 12px;
+}
+
+@media (max-width: 390px), (max-height: 700px) {
+  .final-score-card.share-card {
+    width: 96vw;
+    max-height: 88dvh;
+    padding: 8px;
+    border-radius: 16px;
+  }
+
+  .share-title {
+    font-size: 18px;
+  }
+
+  .share-subtitle {
+    font-size: 10px;
+    margin: 1px 0 3px;
+  }
+
+  .share-name {
+    padding: 5px 6px;
+    font-size: 9px;
+  }
+
+  .share-name strong {
+    font-size: 12px;
+    max-width: 150px;
+  }
+
+  .share-score-row div {
+    padding: 5px 3px;
+    font-size: 8px;
+  }
+
+  .share-score-row strong {
+    font-size: 18px;
+  }
+
+  .share-mini-grid {
+    gap: 3px;
+  }
+
+  .share-mini-grid div {
+    padding: 4px 1px;
+    font-size: 8px;
+  }
+
+  .share-mini-grid strong {
+    font-size: 12px;
+  }
+
+  .share-icons div {
+    padding: 3px 1px;
+    font-size: 9px;
+  }
+
+  .share-icons span {
+    font-size: 15px;
+  }
+
+  .share-actions button {
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+}
+
+
+#devInfoBtn {
+  min-width: 32px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
 </style>
 </head>
 
@@ -1007,6 +1216,7 @@ body.hard-mode button {
     </div>
     <div class="stat-row">
       <button id="nextBtn" style="display:none"></button>
+      <button id="devInfoBtn" title="About">?</button>
       <button id="shopBtn">Shop</button>
       <button id="pauseBtn">Pause</button>
     </div>
@@ -1025,6 +1235,7 @@ body.hard-mode button {
         Bonus UFOs appear after half of some levels. The UFO is piloted by <strong>Zaqxen Rei</strong>,
         so it flies awkwardly, unstable, and random.
       </p>
+
       <div class="button-row">
         <button onclick="startGame(false)">Normal Mode</button>
         <button onclick="startGame(true)">Hard Mode</button>
@@ -1050,7 +1261,8 @@ const ui = {
   total: document.getElementById("total"),
   nextBtn: document.getElementById("nextBtn"),
   shopBtn: document.getElementById("shopBtn"),
-  pauseBtn: document.getElementById("pauseBtn")
+  pauseBtn: document.getElementById("pauseBtn"),
+  devInfoBtn: document.getElementById("devInfoBtn")
 };
 
 const meats = ["🍗", "🥩", "🍖"];
@@ -1143,6 +1355,7 @@ const state = {
   difficultyLevel: 1,
   cycle: 1,
   hardMode: false,
+  playerName: "Player",
   lives: 5,
   coins: 0,
   score: 0,
@@ -1172,6 +1385,8 @@ const state = {
   bombImmunity: 0,
   bombImmunitySpentCredits: 0,
   stats: { steak: 0, chicken: 0, rib: 0, meteor: 0 },
+  missedTargets: 0,
+  missedUfos: 0,
   upgrades: { rocketSize: 1, missiles: 1, trailLength: 1 },
   ownedEffects: ["starter"],
   selectedEffect: "starter",
@@ -1352,7 +1567,7 @@ window.showHelp = function() {
         <div><strong>🛡️ Bomb Immunity</strong><br>Every 1000 credits earned grants 1 bomb immunity. If you tap a bomb by accident, immunity saves you, but costs 1000 credits and lowers Rocket Size and Multi-Missile by 1.</div>
         <div><strong>🔥 Hard Mode</strong><br>Selectable only at the beginning. Red theme, faster falling objects, more targets, and more bombs from level 1.</div>
         <div><strong>🛸 UFO Bonus</strong><br>Appears randomly after half of some levels. Tap to break shields. Capturing it gives a big credit reward and extra lives.</div>
-        <div><strong>Multi-Missile Tap</strong><br>For meteors: lets you tap the same locked target multiple times, launching more rockets. For UFOs: each tap removes shields equal to your Multi-Missile level.</div>
+        <div><strong>Multi-Missile Tap</strong><br>For meteors: lets you tap the same locked target multiple times, launching more rockets. For UFOs: each tap removes shields equal to your Multi-Missile level. Mobile multi-touch is allowed, so be careful near bombs.</div>
         <div><strong>Starter Explosion</strong><br>Your starter pack includes a white expanding circle so you can see the current blast radius.</div>
         <div><strong>Rocket Size</strong><br>Increases blast radius and unlocks grander explosion effects.</div>
         <div><strong>Trail Length</strong><br>Makes rocket trail particles fade slower, creating longer visible trails and unlocking stronger trail styles.</div>
@@ -1397,6 +1612,7 @@ function startGame(hardMode = false) {
     difficultyLevel: 1,
     cycle: 1,
     hardMode: !!hardMode,
+    playerName: "Player",
     lives: 5,
     coins: 0,
     score: 0,
@@ -1423,7 +1639,9 @@ function startGame(hardMode = false) {
     ufoLivesGained: 0,
     bombImmunity: 0,
     bombImmunitySpentCredits: 0,
-    stats: { steak: 0, chicken: 0, rib: 0, meteor: 0 }
+    stats: { steak: 0, chicken: 0, rib: 0, meteor: 0 },
+    missedTargets: 0,
+    missedUfos: 0
   });
 
   prepareUfoForLevel();
@@ -1664,6 +1882,7 @@ function updateObjects(dt) {
 
       if (obj.type !== "bomb") {
         state.lives--;
+        state.missedTargets++;
         document.body.classList.add("damage-flash");
         setTimeout(() => document.body.classList.remove("damage-flash"), 300);
       }
@@ -1960,7 +2179,7 @@ function showUfoIntro() {
         <strong>${Math.round(speed)}</strong>.
       </p>
       <p>
-        As level and run cycle increase, the UFO becomes faster, gains more shields, and gives higher rewards.
+        As level and run cycle increase, the UFO becomes faster, gains more shields up to a fair cap, stays longer, and gives higher rewards.
       </p>
       <p>
         Fun side note: the UFO is piloted by <strong>Zaqxen Rei</strong>, which explains the unstable flying.
@@ -1979,10 +2198,11 @@ window.startIntroUfo = function() {
 
 function ufoShieldCount() {
   /*
-    Starts with 1 shield so the first encounter is easy to understand.
-    Higher levels and later run cycles add more shields.
+    Starts easy, scales slowly, and has a cap so UFOs stay fun and possible.
+    Hard Mode can reach slightly higher shields, but never infinite.
   */
-  return 1 + Math.floor(state.difficultyLevel / 3) + state.cycle - 1;
+  const raw = 1 + Math.floor(state.difficultyLevel / 4) + Math.floor((state.cycle - 1) / 2);
+  return Math.min(state.hardMode ? 9 : 7, raw);
 }
 
 function ufoSpeed() {
@@ -2019,7 +2239,7 @@ function spawnUfo() {
     vx: Math.cos(angle) * speed,
     vy: Math.sin(angle) * speed,
     age: 0,
-    roamTime: 6.5,
+    roamTime: Math.min(state.hardMode ? 11.5 : 10.5, 5.8 + shields * 0.9 + Math.min(2.2, state.cycle * 0.15)),
     escapeTime: 2.2,
     shields,
     reward: ufoReward(shields),
@@ -2148,6 +2368,7 @@ function updateUfos(dt) {
     ufo.el.style.top = ufo.y + "px";
 
     if (ufo.escaping && ufo.age > ufo.escapeTime) {
+      state.missedUfos++;
       ufo.el.remove();
       return false;
     }
@@ -2365,6 +2586,42 @@ window.advanceAfterLevel = function() {
     state.difficultyLevel++;
   }
 
+  if (state.level % 100 === 0) {
+    showHundredLevelMilestone();
+    return;
+  }
+
+  startLevel();
+};
+
+
+function showHundredLevelMilestone() {
+  state.paused = true;
+  overlay.style.background = "rgba(0,0,0,.58)";
+  overlay.style.display = "grid";
+  overlay.innerHTML = `
+    <div class="card">
+      <h1>🏆 Level ${state.level}!</h1>
+      <p>
+        Congratulations. Reaching every 100 levels is a serious achievement.
+      </p>
+      <p>
+        I, developer <strong>Mark Morgan</strong>, am proud of your achievement.
+      </p>
+      <p>
+        ${state.hardMode ? "Hard Mode makes this even more impressive." : "Keep blasting and see how much farther you can go."}
+      </p>
+      <div class="button-row">
+        <button onclick="continueAfterMilestone()">Continue</button>
+      </div>
+    </div>
+  `;
+}
+
+window.continueAfterMilestone = function() {
+  overlay.style.display = "none";
+  state.paused = false;
+  setPauseButtonNormal();
   startLevel();
 };
 
@@ -2720,55 +2977,129 @@ function triggerBombGameOver() {
   setTimeout(gameOver, 650);
 }
 
+
+function formatShareDate(date = new Date()) {
+  const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  let h = date.getHours();
+  const m = String(date.getMinutes()).padStart(2, "0");
+  const ap = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  return `${months[date.getMonth()]} ${date.getDate()}, ${date.getFullYear()} ${h}:${m} ${ap}`;
+}
+
+function scoreRank(score, hardMode) {
+  /*
+    Rank rewards clean play.
+    Missed meteors/meat-eors and missed UFOs reduce the ranking score,
+    so a real pro who misses nothing can reach the highest ranks sooner.
+  */
+  const modeBonus = hardMode ? 1.18 : 1;
+  const missPenalty = Math.max(0.35, 1 - (state.missedTargets || 0) * 0.035 - (state.missedUfos || 0) * 0.08);
+  const adjusted = score * modeBonus * missPenalty;
+
+  if (adjusted >= 90000 && (state.missedTargets || 0) === 0 && (state.missedUfos || 0) === 0) return "S+";
+  if (adjusted >= 60000 && (state.missedTargets || 0) <= 1 && (state.missedUfos || 0) === 0) return "S";
+  if (adjusted >= 35000) return "A";
+  if (adjusted >= 18000) return "B";
+  if (adjusted >= 8000) return "C";
+  return "D";
+}
+
 function gameOver() {
   if (!state.running && state.gameOverShown) return;
   state.gameOverShown = true;
   state.running = false;
   state.paused = true;
+  setPauseButtonNormal();
   setNextButtonVisible(false);
   startGameOverFireworks();
+  askPlayerNameForFinalResult();
+}
 
-  const ownedExplosionNames = state.ownedEffects.length
-    ? state.ownedEffects.map(id => explosionEffects.find(e => e.id === id)?.name).filter(Boolean).join(", ")
-    : "None yet";
-  const ownedTrailNames = state.ownedTrails.map(id => rocketTrails.find(t => t.id === id)?.name).filter(Boolean).join(", ");
+function askPlayerNameForFinalResult() {
+  overlay.style.display = "grid";
+  overlay.style.background = "rgba(0, 0, 0, .18)";
+  overlay.innerHTML = `
+    <div class="card final-score-card share-card">
+      <h1 class="share-title">🥩 Meat-eor Blaster</h1>
+      <div class="share-subtitle">Final Result</div>
+      <p style="font-size:12px;margin:8px 0;color:var(--muted);">
+        Enter your name for the share card.
+      </p>
+      <input id="finalPlayerNameInput" class="name-input" maxlength="16" placeholder="Player name" autocomplete="nickname" autofocus />
+      <div class="button-row share-actions">
+        <button onclick="submitFinalPlayerName()">Show Final Result</button>
+      </div>
+    </div>
+  `;
 
-  const delay = (i) => `style="--delay:${(i * 0.14).toFixed(2)}s"`;
+  setTimeout(() => {
+    const input = document.getElementById("finalPlayerNameInput");
+    if (input) {
+      input.focus();
+      input.addEventListener("keydown", e => {
+        if (e.key === "Enter") submitFinalPlayerName();
+      });
+    }
+  }, 80);
+}
+
+window.submitFinalPlayerName = function() {
+  const input = document.getElementById("finalPlayerNameInput");
+  state.playerName = ((input?.value || "").trim().slice(0, 16) || "Player");
+  renderFinalResult();
+};
+
+function renderFinalResult() {
+  const delay = (i) => `style="--delay:${(i * 0.07).toFixed(2)}s"`;
+  const rank = scoreRank(state.score, state.hardMode);
+  const finishedAt = formatShareDate();
+  const player = state.playerName || "Player";
 
   overlay.style.display = "grid";
   overlay.style.background = "rgba(0, 0, 0, .18)";
   overlay.innerHTML = `
-    <div class="card final-score-card">
-      <h1 class="result-pop" ${delay(0)}>🎆 Congratulations!</h1>
-      <h2 class="result-pop" ${delay(1)}>Final Results</h2>
+    <div class="card final-score-card share-card">
+      <h1 class="share-title result-pop" ${delay(0)}>🥩 Meat-eor Blaster</h1>
+      <div class="share-subtitle result-pop" ${delay(1)}>Final Result · ${state.hardMode ? "🔥 Hard Mode" : "Normal Mode"}</div>
 
-      <div class="final-score-grid">
-        <div class="result-pop" ${delay(2)}><strong>${state.score}</strong>Total Score</div>
-        <div class="result-pop" ${delay(3)}><strong>${state.coins}</strong>Final Credits</div>
-        <div class="result-pop" ${delay(4)}><strong>${state.level}</strong>Level Reached</div>
-        <div class="result-pop" ${delay(5)}><strong>${state.cycle}</strong>Run Cycle</div>
-        <div class="result-pop" ${delay(6)}><strong>${state.hardMode ? "Hard" : "Normal"}</strong>Mode</div>
-        <div class="result-pop" ${delay(6)}><strong>${state.ufoCaught || 0}</strong>UFOs Caught</div>
-        <div class="result-pop" ${delay(7)}><strong>${state.ufoLivesGained || 0}</strong>UFO Lives Gained</div>
-        <div class="result-pop" ${delay(8)}><strong>${state.bombImmunity || 0}</strong>Bomb Immunity Left</div>
-        <div class="result-pop" ${delay(8)}><strong>${state.upgrades.rocketSize}/${MAX_ROCKET_SIZE}</strong>Rocket Size</div>
-        <div class="result-pop" ${delay(9)}><strong>${state.upgrades.missiles}/4</strong>Multi-Missile</div>
-        <div class="result-pop" ${delay(10)}><strong>${state.upgrades.trailLength}/7</strong>Trail Length</div>
-        <div class="result-pop" ${delay(11)}><strong>${state.ownedEffects.length}</strong>Effects</div>
+      <div class="share-name result-pop" ${delay(2)}>
+        <strong>${player}</strong>
+        <span>${finishedAt}</span>
       </div>
 
-      <div class="final-icon-row">
-        <div class="result-pop" ${delay(12)}><span>🥩</span>${state.stats?.steak || 0}</div>
-        <div class="result-pop" ${delay(13)}><span>🍗</span>${state.stats?.chicken || 0}</div>
-        <div class="result-pop" ${delay(14)}><span>🍖</span>${state.stats?.rib || 0}</div>
-        <div class="result-pop" ${delay(15)}><span>☄️</span>${state.stats?.meteor || 0}</div>
-        <div class="result-pop" ${delay(16)}><span>🛸</span>${state.ufoCaught || 0}</div>
+      <div class="share-score-row">
+        <div class="result-pop" ${delay(3)}><strong>${state.score}</strong>Total Score</div>
+        <div class="result-pop" ${delay(4)}><strong>${rank}</strong>Rank</div>
       </div>
 
-      <p class="result-pop" ${delay(17)}><strong>Effects:</strong> ${ownedExplosionNames}</p>
-      <p class="result-pop" ${delay(18)}><strong>Trails:</strong> ${ownedTrailNames}</p>
+      <div class="share-mini-grid">
+        <div class="result-pop" ${delay(5)}><strong>${state.coins}</strong>🪙 Credits</div>
+        <div class="result-pop" ${delay(6)}><strong>${state.level}</strong>⭐ Level</div>
+        <div class="result-pop" ${delay(7)}><strong>${state.cycle}</strong>🔁 Run</div>
+        <div class="result-pop" ${delay(8)}><strong>${state.ufoCaught || 0}/${state.missedUfos || 0}</strong>🛸 UFO +/-</div>
+        <div class="result-pop" ${delay(9)}><strong>${state.upgrades.rocketSize}/${MAX_ROCKET_SIZE}</strong>🚀 Size</div>
+        <div class="result-pop" ${delay(10)}><strong>${state.upgrades.missiles}/4</strong>🎯 Multi</div>
+        <div class="result-pop" ${delay(11)}><strong>${state.upgrades.trailLength}/7</strong>✨ Trail</div>
+        <div class="result-pop" ${delay(12)}><strong>${state.bombImmunity || 0}</strong>🛡️ Shield</div>
+      </div>
 
-      <div class="button-row result-pop" ${delay(19)}>
+      <div class="share-icons">
+        <div class="result-pop" ${delay(13)}><span>🥩</span>${state.stats?.steak || 0}</div>
+        <div class="result-pop" ${delay(14)}><span>🍗</span>${state.stats?.chicken || 0}</div>
+        <div class="result-pop" ${delay(15)}><span>🍖</span>${state.stats?.rib || 0}</div>
+        <div class="result-pop" ${delay(16)}><span>☄️</span>${state.stats?.meteor || 0}</div>
+        <div class="result-pop" ${delay(17)}><span>🛸</span>${state.ufoCaught || 0}</div>
+      </div>
+
+      <div class="share-mini-grid">
+        <div class="result-pop" ${delay(18)}><strong>${state.ownedEffects.length}</strong>Effects</div>
+        <div class="result-pop" ${delay(19)}><strong>${state.ownedTrails.length}</strong>Trails</div>
+        <div class="result-pop" ${delay(20)}><strong>${state.missedTargets || 0}</strong>Missed</div>
+        <div class="result-pop" ${delay(21)}><strong>${state.hardMode ? "Hard" : "Normal"}</strong>Mode</div>
+      </div>
+
+      <div class="button-row share-actions result-pop" ${delay(22)}>
         <button onclick="location.reload()">Try Again</button>
       </div>
     </div>
@@ -2939,6 +3270,37 @@ window.resumeFromPauseLegend = function() {
   state.lastTime = performance.now();
 };
 
+
+function showDeveloperInfo() {
+  const wasPaused = state.paused;
+  if (state.running) state.paused = true;
+  overlay.style.background = "rgba(0,0,0,.58)";
+  overlay.style.display = "grid";
+  overlay.innerHTML = `
+    <div class="card">
+      <h1>About Meat-eor Blaster</h1>
+      <p>
+        This game development, concept, design, and logic were created by
+        <strong>Mark Morgan</strong>.
+      </p>
+      <p>
+        It is dedicated to his son, <strong>Zaqxen Rei</strong>, the pilot of the awkward and unpredictable UFO.
+      </p>
+      <div class="button-row">
+        <button onclick="closeDeveloperInfo(${wasPaused ? "true" : "false"})">Back</button>
+      </div>
+    </div>
+  `;
+}
+
+window.closeDeveloperInfo = function(wasPaused) {
+  overlay.style.display = "none";
+  if (state.running) {
+    state.paused = !!wasPaused;
+    if (!state.paused) state.lastTime = performance.now();
+  }
+};
+
 function pauseForRotation() {
   if (!state.running) return;
   state.paused = true;
@@ -2994,9 +3356,37 @@ function loop(now) {
   requestAnimationFrame(loop);
 }
 
+
+function handleTouchMultiTap(e) {
+  if (!state.running || state.paused) return;
+  for (const touch of e.changedTouches) {
+    const el = document.elementFromPoint(touch.clientX, touch.clientY);
+    if (!el) continue;
+
+    const falling = el.closest(".falling");
+    const ufoEl = el.closest(".ufo");
+
+    updatePointer(touch.clientX, touch.clientY);
+
+    if (falling) {
+      const obj = state.objects.find(o => o.el === falling);
+      if (obj) {
+        if (obj.type === "bomb") triggerBombGameOver();
+        else lockTarget(obj);
+      }
+    } else if (ufoEl) {
+      const ufo = state.ufos.find(u => u.el === ufoEl);
+      if (ufo) tapUfo(ufo);
+    }
+  }
+}
+
+
 game.addEventListener("pointermove", e => updatePointer(e.clientX, e.clientY));
 game.addEventListener("pointerdown", e => updatePointer(e.clientX, e.clientY));
+game.addEventListener("touchstart", handleTouchMultiTap, { passive: true });
 
+ui.devInfoBtn.addEventListener("click", () => showDeveloperInfo());
 ui.shopBtn.addEventListener("click", () => openShop(false));
 
 ui.pauseBtn.addEventListener("click", () => {
