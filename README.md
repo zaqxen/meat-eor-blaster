@@ -18,6 +18,7 @@
 - Bombs are extra hazards and do **not** count toward the required target total.
 - Bombs are not affected by explosion radius; only direct tapping triggers bomb danger.
 - The final score screen is designed to fit small mobile screens for easy screenshots and sharing.
+- If the player taps empty space instead of a valid target, a tiny red crosshair briefly appears at the exact tap location to confirm the missed click.
 
 ## Game Modes
 
@@ -112,6 +113,8 @@ Starting at level 30, UFOs can drop hazards every few seconds:
 - 🔧 Wrenches
 - 🎰 Slot machines
 
+The UFO now initializes its drop timer when it spawns, so the random tool droppings can appear correctly instead of only the end-of-visit slot machine appearing.
+
 Tool drops cannot be destroyed. If they reach the ground, the player loses 1 life.
 
 A slot machine can drop near the very end of a UFO visit. If it reaches the ground, it steals a random 100-1000 credits and can make the player bankrupt or negative in credits.
@@ -170,6 +173,7 @@ The Pause screen expands these icons into full text and also shows:
 - Current mode
 - Continue button
 - Shop button
+- A small `?` Help button so players can reopen Help & Instructions during a run, not only from the title screen.
 
 ## Developer Note
 
