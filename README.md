@@ -59,9 +59,12 @@ The final result card shows:
 - Run cycle.
 - Credits.
 - UFOs caught and missed.
+- Large final-result numbers use compact notation such as 1.0K and 1.0M so the share card still fits small screens.
 - Missed targets.
 - Upgrade levels.
 - Bomb immunity remaining.
+- Saved-run continue count.
+- Danger continue count, used when a saved run was continued after the last saved falling target was close to the ground.
 - Meat, chicken, rib, meteor, and UFO collection icons.
 
 Ranking considers both score and clean play:
@@ -69,7 +72,9 @@ Ranking considers both score and clean play:
 - Hard Mode receives a score multiplier bonus.
 - Missed meat-eors and meteors reduce the ranking score.
 - Missed UFOs reduce the ranking score more heavily.
-- **S+ requires no missed targets and no missed UFOs.**
+- Saved-run continues apply a small ranking penalty.
+- Danger continues apply a stronger ranking penalty and prevent a perfect S+ result.
+- **S+ requires no missed targets, no missed UFOs, and no danger continues.**
 
 ## Scoring and Rewards
 
@@ -131,6 +136,36 @@ If the player finishes the level before UFO droppings reach the bottom, those dr
 
 If the player maxes out an upgrade or upgrade category, the game congratulates them.
 
+## Local Save, Continue, and Tamper Checks
+
+The game uses browser `localStorage` to keep a local checkpoint in the same browser.
+
+The saved checkpoint keeps durable run values:
+
+- Current level, difficulty cycle, and mode.
+- Current lives, credits, score, and active run time.
+- Upgrade levels, owned effects, selected effect, owned trails, selected trail, and Lite Mode choice.
+- Collection stats, missed targets, missed UFOs, UFO captures, and UFO life rewards.
+- Saved-run continue count and danger continue count.
+
+The checkpoint does **not** save live falling objects, rockets, UFO positions, or mid-screen DOM state. When the player continues a saved run, the game resumes cleanly from the saved level state rather than recreating exact objects on screen.
+
+Recorded penalties do not roll back. If a meat-eor or meteor already missed, or a UFO already escaped, that miss remains saved even if the player later continues and restarts the level flow.
+
+To make restart abuse visible, the game records every saved-run continue. It also checks the active falling targets at save time. If the closest falling target was near the ground, the next continue is recorded as a **danger continue** on the final result screen.
+
+Danger continues are meant to reveal cases where a player may have closed or reloaded to avoid an almost-certain miss. They also reduce rank more than normal saved-run continues.
+
+The local save is tamper-resistant for casual editing:
+
+- The payload is normalized and clamped to allowed ranges.
+- Level, difficulty level, and run cycle must match the expected 12-level cycle.
+- Owned cosmetic IDs must be known valid IDs.
+- The save includes a signature and mirror copy.
+- If the signature check fails, the saved run is blocked and ignored.
+
+Because this is a single-file offline browser game, localStorage protection cannot be as strong as a server-verified account save. A determined user with full access to the page code can still reverse-engineer client-side checks, but casual value editing is blocked.
+
 ## Starter Pack
 
 The player starts with a default starter explosion effect:
@@ -143,6 +178,7 @@ The player starts with a default starter explosion effect:
 
 - The Rocket Workshop lets players buy upgrades, explosion effects, and rocket trails.
 - Credits stay visible at the top while scrolling the shop.
+- The Shop shows the exact current credit total, even when the gameplay HUD shortens the number.
 - When no upgrades or effects are currently affordable, **Shop Upgrades** becomes **View Upgrades**.
 - Shop, Help, Pause, and Workshop screens are scrollable on mobile when needed.
 - At level clear, the game highlights the strongest affordable upgrade or cosmetic when one is available.
@@ -158,13 +194,15 @@ The ground color reflects remaining lives:
 
 ## HUD and Pause Screen
 
-During gameplay, the HUD uses compact icons:
+During gameplay, the HUD uses smaller compact icons and compact number formatting:
 
 - ⭐ Level
 - 🔁 Run cycle
 - ❤️ Lives
 - 🪙 Credits
 - 🎯 Targets cleared
+
+Numbers of 1000 and higher shorten to K/M/B/T format, for example 1000 becomes 1.0K and 1000000 becomes 1.0M. Exact current credits are shown inside the Rocket Workshop.
 
 The Pause screen expands these icons into full text and also shows:
 
@@ -174,6 +212,7 @@ The Pause screen expands these icons into full text and also shows:
 - Continue button
 - Shop button
 - A small `?` Help button so players can reopen Help & Instructions during a run, not only from the title screen.
+- Local save status, including saved-run continues and danger continues.
 
 ## Developer Note
 
@@ -204,8 +243,12 @@ The game is designed to work on small mobile screens, including iPhone SE-sized 
 - Text selection is disabled except inside player-name input fields.
 - Final result is no-scroll and compact for screenshots.
 - Help, Pause, Workshop, About, and other information screens can scroll when needed on mobile.
+- Android dynamic browser bars and safe-area insets are handled with visual-viewport sizing so the bottom ground, launcher area, overlay cards, and bottom buttons stay visible.
 - The game supports portrait and landscape.
-- It pauses on resize, rotation, screen lock, app switching, and focus changes so the player can resume safely.
+- Regular browser resize recalibrates the playfield without overwriting the Level Cleared, Shop, Help, or Pause screens.
+- Rotation still pauses active gameplay when safe, but it keeps level-end overlays intact so the next level cannot get stuck waiting for a manual pause/resume.
+- Screen lock, app switching, and focus changes pause the game so the player can resume safely.
+- Continuing from a local save works only in the same browser/localStorage profile unless the browser clears site data.
 
 ## Run Locally
 
