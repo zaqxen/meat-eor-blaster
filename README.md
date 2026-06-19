@@ -29,7 +29,7 @@
 
 ### Hard Mode
 
-- Selected only at the beginning of a run.
+- Hard Mode is selected only at the beginning of a run.
 - Uses a red theme.
 - Faster falling objects.
 - More targets per level.
@@ -50,6 +50,7 @@ The final result card shows:
 
 - Player name, entered after game over.
 - Date and time with a 3-letter month.
+- Active run time, excluding paused time.
 - Total score.
 - Rank.
 - Mode.
@@ -75,21 +76,22 @@ Ranking considers both score and clean play:
 - ☄️ Meteors: worth more credits than meat-eors.
 - 🛸 UFOs: bonus event that appears randomly after half of some levels.
 - Capturing a UFO grants bonus credits and extra lives.
-- Every 1000 credits earned grants 1 bomb immunity.
+- Every 1000 current available credits gives 1 bomb immunity.
+- Bomb immunity is based on current available credits, not accumulated lifetime credits or UFO captures.
 
 ## Bombs and Bomb Immunity
 
 - Bombs are extra hazards, not part of the meat-eor/meteor target count.
 - Bombs are ignored by explosion radius.
 - Directly tapping a bomb normally ends the game.
-- If you have bomb immunity, an accidental bomb tap is blocked.
+- If you have bomb immunity based on your current available credits, an accidental bomb tap is blocked.
 - Using bomb immunity costs:
-  - 1000 credits
+  - 1000 current credits
   - 1 Rocket Size level
   - 1 Multi-Missile Tap level
 - Rocket Size and Multi-Missile Tap cannot drop below level 1.
 
-## UFO Bonus
+## UFO Bonus and UFO Droppings
 
 The UFO is piloted by **Zaqxen Rei**, which explains why it flies awkwardly, unstable, and random.
 
@@ -100,7 +102,21 @@ The UFO is piloted by **Zaqxen Rei**, which explains why it flies awkwardly, uns
   - Hard Mode max shield: 9
 - As UFO shields increase, the UFO stays longer so players have time to capture it.
 - Multi-Missile Tap helps catch the UFO by removing more shields per tap.
+- The flying UFO shows only the UFO itself, with no meat bundle/orbiting meat around it.
 - Once shields reach 0, the game pauses for a special rocket hit and a large comedic meat explosion reward scene.
+
+Starting at level 30, UFOs can drop hazards every few seconds:
+
+- 🔪 Knives
+- 🔨 Hammers
+- 🔧 Wrenches
+- 🎰 Slot machines
+
+Tool drops cannot be destroyed. If they reach the ground, the player loses 1 life.
+
+A slot machine can drop near the very end of a UFO visit. If it reaches the ground, it steals a random 100-1000 credits and can make the player bankrupt or negative in credits.
+
+If the player finishes the level before UFO droppings reach the bottom, those droppings are cleared and do not count against the player.
 
 ## Upgrades
 
@@ -126,6 +142,16 @@ The player starts with a default starter explosion effect:
 - Credits stay visible at the top while scrolling the shop.
 - When no upgrades or effects are currently affordable, **Shop Upgrades** becomes **View Upgrades**.
 - Shop, Help, Pause, and Workshop screens are scrollable on mobile when needed.
+- At level clear, the game highlights the strongest affordable upgrade or cosmetic when one is available.
+
+## Ground and Lives
+
+The ground color reflects remaining lives:
+
+- Low lives shift the ground toward red.
+- More lives shift the ground toward green.
+- At high lives, flowers and trees start growing randomly on the ground.
+- Plants disappear again as lives go down.
 
 ## HUD and Pause Screen
 
@@ -155,15 +181,27 @@ It is dedicated to his son, **Zaqxen Rei**, the pilot of the awkward, unpredicta
 
 A small **?** button inside the game shows this developer and dedication information.
 
+## Lite Mode
+
+Lite Mode is available inside the Rocket Workshop for low-spec devices.
+
+It keeps the gameplay rules the same, but replaces heavier visual effects:
+
+- Explosion effects become simple colored blast circles with no particles.
+- Rocket trails become simple fading gradient lines with no particles.
+- Lite visuals intensify through white, yellow, light orange, orange, light red, and deep red.
+
 ## Mobile Notes
 
 The game is designed to work on small mobile screens, including iPhone SE-sized displays.
 
 - Gameplay is no-scroll so taps and multi-touch feel responsive.
+- Double-tap zoom is disabled for smoother mobile play.
+- Text selection is disabled except inside player-name input fields.
 - Final result is no-scroll and compact for screenshots.
 - Help, Pause, Workshop, About, and other information screens can scroll when needed on mobile.
 - The game supports portrait and landscape.
-- It pauses on resize/rotation so the player can resume safely.
+- It pauses on resize, rotation, screen lock, app switching, and focus changes so the player can resume safely.
 
 ## Run Locally
 
