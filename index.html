@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Meat-eor Blaster</title>
 <style>
 :root {
@@ -403,17 +403,10 @@ button:disabled {
   font-size: 56px;
 }
 
-.ufo .bundle {
-  position: absolute;
-  bottom: -16px;
-  font-size: 32px;
-  animation: bundleGlow .35s infinite alternate;
-}
-
 .ufo .shield {
   position: absolute;
-  top: -13px;
-  right: -8px;
+  top: 8px;
+  right: -37px;
   background: rgba(53,212,255,.92);
   color: #001a20;
   border-radius: 999px;
@@ -1284,6 +1277,258 @@ body {
   touch-action: none;
 }
 
+
+/* Final mobile polish:
+   - no accidental text selection during play or overlays
+   - inputs remain selectable/editable
+   - double tap zoom is discouraged with viewport + touch manipulation */
+html,
+body,
+#game,
+#hud,
+#overlay,
+.card,
+button,
+.falling,
+.ufo,
+.rocket,
+.trail-particle,
+.explosion {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+input,
+textarea {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
+button,
+#game,
+#hud,
+.falling,
+.ufo {
+  touch-action: manipulation;
+}
+
+
+.lite-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px auto 2px;
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--muted);
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 999px;
+  padding: 8px 12px;
+}
+
+.lite-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: #ffb23a;
+}
+
+.ufo-drop {
+  z-index: 19;
+}
+
+.ufo-drop.tool {
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,.42));
+}
+
+.ufo-drop.slot {
+  filter: drop-shadow(0 0 8px rgba(255,178,58,.65));
+}
+
+
+.ufo {
+  font-size: clamp(50px, 10vw, 74px);
+}
+.ufo::after {
+  content: none !important;
+}
+
+
+.lite-mode-shop-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 10px 0;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.12);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.lite-mode-shop-control strong {
+  color: var(--gold);
+}
+
+.lite-mode-shop-control button {
+  padding: 7px 11px;
+  font-size: 12px;
+}
+
+
+/* Lite Mode visuals: no particles, only circles for explosions and simple lines for trails. */
+.lite-trail-line {
+  position: absolute;
+  z-index: 15;
+  left: var(--x);
+  top: var(--y);
+  width: var(--w);
+  height: var(--h);
+  border-radius: 999px;
+  background: var(--bg);
+  box-shadow: var(--shadow);
+  transform-origin: 100% 50%;
+  transform: translate(-100%, -50%) rotate(var(--angle));
+  pointer-events: none;
+  animation: liteTrailFade var(--life) linear forwards;
+}
+
+@keyframes liteTrailFade {
+  from { opacity: .95; }
+  to { opacity: 0; }
+}
+
+.lite-preview-blast {
+  position: relative;
+  width: 96px;
+  height: 96px;
+}
+
+.lite-preview-blast::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border: 3px solid var(--lite-border);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: var(--lite-shadow);
+  animation: litePreviewCircle var(--lite-dur) ease-out infinite;
+}
+
+@keyframes litePreviewCircle {
+  0% { opacity: 0; width: 12px; height: 12px; }
+  18% { opacity: 1; }
+  100% { opacity: 0; width: var(--lite-ring); height: var(--lite-ring); }
+}
+
+.lite-preview-line {
+  position: absolute;
+  left: 0;
+  top: 43px;
+  width: var(--lite-line-w);
+  height: var(--lite-line-h);
+  border-radius: 999px;
+  background: var(--lite-line-bg);
+  box-shadow: var(--lite-line-shadow);
+  animation: previewLiteLineFlyLeft 1.75s linear infinite;
+}
+
+@keyframes previewLiteLineFlyLeft {
+  0% { opacity: 0; transform: translateX(calc(100% + 80px)); }
+  8% { opacity: .95; }
+  82% { opacity: .85; }
+  100% { opacity: 0; transform: translateX(-28px); }
+}
+
+
+#ground {
+  overflow: visible;
+  transition: background 420ms ease, border-color 420ms ease, box-shadow 420ms ease;
+}
+
+.ground-plant {
+  position: absolute;
+  z-index: 7;
+  pointer-events: none;
+  transform: translate(-50%, 0) scale(.2);
+  transform-origin: 50% 100%;
+  animation: plantPop 420ms ease-out forwards;
+  filter: drop-shadow(0 3px 4px rgba(0,0,0,.35));
+}
+
+@keyframes plantPop {
+  to {
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+
+/* UFO is intentionally clean while flying: no orbiting meat decorations.
+   Bigger visual and larger invisible hit box compensate for removing meat around it. */
+.ufo {
+  font-size: clamp(68px, 14vw, 104px) !important;
+  width: 1px;
+  height: 1px;
+  overflow: visible;
+  transform: translate(-50%, -50%);
+}
+
+.ufo::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: clamp(96px, 18vw, 138px);
+  height: clamp(96px, 18vw, 138px);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: auto;
+  background: transparent;
+}
+
+.ufo::after,
+.ufo .ufo-meat {
+  content: none !important;
+  display: none !important;
+}
+
+
+/* Clean flying UFO: no meat bundle while flying.
+   Bigger UFO and bigger invisible hit box compensate for removed bundle. */
+.ufo {
+  font-size: clamp(82px, 17vw, 124px) !important;
+  width: 1px !important;
+  height: 1px !important;
+  line-height: 1 !important;
+  overflow: visible !important;
+  transform: translate(-50%, -50%) !important;
+  text-align: center !important;
+}
+
+.ufo::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: clamp(120px, 22vw, 164px);
+  height: clamp(120px, 22vw, 164px);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: transparent;
+  pointer-events: auto;
+}
+
+.ufo::after {
+  content: none !important;
+}
+
 </style>
 </head>
 
@@ -1447,6 +1692,9 @@ const state = {
   cycle: 1,
   hardMode: false,
   playerName: "Player",
+  liteMode: false,
+  activePlayMs: 0,
+  activeTimerLast: 0,
   lives: 5,
   coins: 0,
   score: 0,
@@ -1488,32 +1736,102 @@ const state = {
 };
 
 function updateUI() {
+  state.bombImmunity = bombImmunityCount();
   ui.level.textContent = state.level;
   ui.cycle.textContent = state.cycle;
   ui.lives.textContent = state.lives;
   ui.coins.textContent = state.coins;
   ui.cleared.textContent = state.cleared;
   ui.total.textContent = state.total;
+  updateGroundVisual();
 }
 
+function lerpColor(a, b, t) {
+  const ar = parseInt(a.slice(1, 3), 16);
+  const ag = parseInt(a.slice(3, 5), 16);
+  const ab = parseInt(a.slice(5, 7), 16);
+  const br = parseInt(b.slice(1, 3), 16);
+  const bg = parseInt(b.slice(3, 5), 16);
+  const bb = parseInt(b.slice(5, 7), 16);
+  const rr = Math.round(ar + (br - ar) * t).toString(16).padStart(2, "0");
+  const rg = Math.round(ag + (bg - ag) * t).toString(16).padStart(2, "0");
+  const rb = Math.round(ab + (bb - ab) * t).toString(16).padStart(2, "0");
+  return "#" + rr + rg + rb;
+}
 
-function addCredits(amount) {
-  state.coins += amount;
-  const earnedBlocksBefore = Math.floor(state.bombImmunitySpentCredits / 1000);
-  state.bombImmunitySpentCredits += amount;
-  const earnedBlocksAfter = Math.floor(state.bombImmunitySpentCredits / 1000);
-  const gained = Math.max(0, earnedBlocksAfter - earnedBlocksBefore);
-  if (gained > 0) {
-    state.bombImmunity += gained;
-    showMessage("🛡️ Bomb immunity gained! +" + gained);
+function updateGroundVisual() {
+  if (!ground) return;
+
+  const lives = Math.max(0, state.lives || 0);
+  const ratio = Math.max(0, Math.min(1, (lives - 1) / 11));
+
+  const top = lerpColor("#5a0c0c", "#5f8f2f", ratio);
+  const mid = lerpColor("#751313", "#2f6d22", ratio);
+  const bot = lerpColor("#2a0505", "#13370f", ratio);
+  const border = lerpColor("#ff2d22", "#9cd65b", ratio);
+
+  ground.style.background = `linear-gradient(to top, ${bot}, ${mid} 58%, ${top})`;
+  ground.style.borderTopColor = border;
+  ground.style.boxShadow = lives <= 1
+    ? "0 -16px 32px rgba(255,45,34,.35)"
+    : lives >= 12
+      ? "0 -18px 34px rgba(92,220,80,.22)"
+      : "0 -16px 30px rgba(0,0,0,.52)";
+
+  renderGroundPlants(lives);
+}
+
+function renderGroundPlants(lives) {
+  if (!ground) return;
+
+  let desired = 0;
+  if (lives >= 8) desired = Math.min(6, lives - 6);
+  if (lives >= 12) desired = Math.min(16, 6 + Math.floor((lives - 11) * 1.4));
+  if (lives >= 20) desired = Math.min(28, 18 + Math.floor((lives - 20) * 0.7));
+
+  const current = Number(ground.dataset.plantCount || 0);
+  if (current === desired) return;
+
+  ground.querySelectorAll(".ground-plant").forEach(el => el.remove());
+  ground.dataset.plantCount = String(desired);
+
+  if (desired <= 0) return;
+
+  const flowers = ["🌱", "🌷", "🌼", "🌻", "🌸"];
+  const trees = ["🌳", "🌲", "🌴"];
+  const plants = lives >= 14 ? flowers.concat(trees) : flowers;
+
+  for (let i = 0; i < desired; i++) {
+    const plant = document.createElement("span");
+    plant.className = "ground-plant";
+    const useTree = lives >= 14 && Math.random() < Math.min(0.5, (lives - 12) / 18);
+    plant.textContent = useTree ? trees[Math.floor(Math.random() * trees.length)] : flowers[Math.floor(Math.random() * flowers.length)];
+    plant.style.left = (2 + Math.random() * 96).toFixed(2) + "%";
+    plant.style.bottom = (10 + Math.random() * 42).toFixed(1) + "px";
+    plant.style.fontSize = (useTree ? 24 + Math.random() * 18 : 15 + Math.random() * 13).toFixed(1) + "px";
+    plant.style.animationDelay = (Math.random() * 220).toFixed(0) + "ms";
+    ground.appendChild(plant);
   }
 }
 
-function useBombImmunity() {
-  if (state.bombImmunity <= 0 || state.coins < 1000) return false;
 
-  state.bombImmunity--;
-  state.coins = Math.max(0, state.coins - 1000);
+
+function bombImmunityCount() {
+  /*
+    Bomb immunity is based only on current available credits.
+    Spending credits can reduce available immunity.
+  */
+  return Math.floor(Math.max(0, state.coins) / 1000);
+}
+
+function addCredits(amount) {
+  state.coins += amount;
+}
+
+function useBombImmunity() {
+  if (state.coins < 1000) return false;
+
+  state.coins -= 1000;
   state.upgrades.missiles = Math.max(1, state.upgrades.missiles - 1);
   state.upgrades.rocketSize = Math.max(1, state.upgrades.rocketSize - 1);
   updateUI();
@@ -1540,6 +1858,101 @@ function currentEffect() {
   if (!state.selectedEffect) return null;
   return explosionEffects.find(e => e.id === state.selectedEffect) || null;
 }
+
+
+function itemIndexById(list, id) {
+  return Math.max(0, list.findIndex(item => item.id === id));
+}
+
+function liteExplosionStyle(effect) {
+  const idx = itemIndexById(explosionEffects, effect?.id);
+  const max = Math.max(1, explosionEffects.length - 1);
+  const ratio = Math.min(1, Math.max(0, idx / max));
+
+  /*
+    Lite Mode has no particles. The circle itself intensifies by color:
+    white -> yellow -> light orange -> orange -> light red -> deep red.
+  */
+  const palette = [
+    { border: "#ffffff", glow: "rgba(255,255,255,.9)" },
+    { border: "#fff4a8", glow: "rgba(255,244,168,.9)" },
+    { border: "#ffd36a", glow: "rgba(255,211,106,.9)" },
+    { border: "#ff9f1c", glow: "rgba(255,159,28,.95)" },
+    { border: "#ff6b4a", glow: "rgba(255,107,74,.95)" },
+    { border: "#c9181d", glow: "rgba(201,24,29,.95)" }
+  ];
+
+  const p = palette[Math.min(palette.length - 1, Math.floor(ratio * palette.length))];
+  const lifeBonus = Math.floor(40 + ratio * 160);
+
+  return {
+    border: p.border,
+    shadow: `0 0 18px ${p.glow}, 0 0 ${24 + Math.floor(ratio * 26)}px ${p.border}, inset 0 0 18px ${p.glow}`,
+    lifeBonus
+  };
+}
+
+function liteTrailStyle(trail) {
+  const idx = itemIndexById(rocketTrails, trail?.id);
+  const max = Math.max(1, rocketTrails.length - 1);
+  const ratio = Math.min(1, Math.max(0, idx / max));
+  const length = 30 + state.upgrades.trailLength * 9 + idx * 12;
+  const height = 2 + Math.min(6, idx + Math.floor(state.upgrades.trailLength / 3));
+
+  /*
+    Line is anchored at the rocket end. It fades out toward the far tail.
+    Colors intensify as trail cosmetics/Trail Length improve.
+  */
+  const palette = [
+    "#ffffff",
+    "#fff4a8",
+    "#ffd36a",
+    "#ff9f1c",
+    "#ff6b4a",
+    "#c9181d"
+  ];
+
+  const color = palette[Math.min(palette.length - 1, Math.floor(ratio * palette.length))];
+  const hot = ratio >= 0.82 || state.upgrades.trailLength >= 7;
+  const mid = ratio >= 0.45;
+
+  return {
+    bg: hot
+      ? `linear-gradient(to right, rgba(255,255,255,0), rgba(255,244,168,.55), #ffffff, ${color})`
+      : mid
+        ? `linear-gradient(to right, rgba(255,255,255,0), rgba(255,244,168,.55), ${color})`
+        : `linear-gradient(to right, rgba(255,255,255,0), ${color})`,
+    shadow: hot
+      ? `0 0 10px #ffffff, 0 0 18px ${color}`
+      : mid
+        ? `0 0 9px #fff4a8, 0 0 14px ${color}`
+        : `0 0 8px rgba(255,255,255,.85)`,
+    w: length + (hot ? 28 : mid ? 14 : 0),
+    h: height + (hot ? 2 : mid ? 1 : 0)
+  };
+}
+
+function createLiteTrailLine(x, y, backX, backY) {
+  const trail = currentTrail();
+  const lite = liteTrailStyle(trail);
+  const line = document.createElement("div");
+  const angle = Math.atan2(-backY, -backX);
+  const life = 90 + state.upgrades.trailLength * 32;
+
+  line.className = "lite-trail-line";
+  line.style.setProperty("--x", x + "px");
+  line.style.setProperty("--y", y + "px");
+  line.style.setProperty("--w", lite.w + "px");
+  line.style.setProperty("--h", lite.h + "px");
+  line.style.setProperty("--bg", lite.bg);
+  line.style.setProperty("--shadow", lite.shadow);
+  line.style.setProperty("--angle", angle + "rad");
+  line.style.setProperty("--life", life + "ms");
+
+  game.appendChild(line);
+  setTimeout(() => line.remove(), life + 50);
+}
+
 
 function currentTrail() {
   return rocketTrails.find(t => t.id === state.selectedTrail) || rocketTrails[0];
@@ -1656,7 +2069,7 @@ window.showHelp = function() {
         <div><strong>🍖 Rib Meat-eor</strong><br>Destroy for 3 credits. Counts toward your final rib collection.</div>
         <div><strong>☄️ Meteor</strong><br>Destroy for 5 credits. Meteors are worth more than meat-eors.</div>
         <div><strong>💣 Bomb</strong><br>Normal Mode: appears after level 12 difficulty reset. Hard Mode: appears from level 1. Bombs are extra hazards and do not count as targets.</div>
-        <div><strong>🛡️ Bomb Immunity</strong><br>Every 1000 credits earned grants 1 bomb immunity. If you tap a bomb by accident, immunity saves you, but costs 1000 credits and lowers Rocket Size and Multi-Missile by 1.</div>
+        <div><strong>🛡️ Bomb Immunity</strong><br>Every 1000 current available credits gives 1 bomb immunity. If you spend credits, available immunity can go down. If you tap a bomb by accident, immunity saves you, but costs 1000 credits and lowers Rocket Size and Multi-Missile by 1.</div>
         <div><strong>🔥 Hard Mode</strong><br>Selectable only at the beginning. Red theme, faster falling objects, more targets, and more bombs from level 1.</div>
         <div><strong>🛸 UFO Bonus</strong><br>Appears randomly after half of some levels. Tap to break shields. Capturing it gives a big credit reward and extra lives.</div>
         <div><strong>Multi-Missile Tap</strong><br>For meteors: lets you tap the same locked target multiple times, launching more rockets. For UFOs: each tap removes shields equal to your Multi-Missile level. Mobile multi-touch is allowed, so be careful near bombs.</div>
@@ -1705,6 +2118,9 @@ function startGame(hardMode = false) {
     cycle: 1,
     hardMode: !!hardMode,
     playerName: "Player",
+    liteMode: false,
+    activePlayMs: 0,
+    activeTimerLast: 0,
     lives: 5,
     coins: 0,
     score: 0,
@@ -1771,6 +2187,7 @@ function startLevel() {
   prepareUfoForLevel();
   setNextButtonVisible(false);
   state.lastTime = performance.now();
+  resetActiveTimer();
   overlay.style.background = "rgba(0,0,0,.58)";
   overlay.style.display = "none";
   setPauseButtonNormal();
@@ -1793,7 +2210,7 @@ function showBombWarning() {
         plus up to <strong>${state.bombQuota}</strong> extra random bomb${state.bombQuota === 1 ? "" : "s"} that do not count as targets.
       </p>
       <p>
-        Do not tap bombs. Explosion radius will not set them off, but direct taps will end the game unless you have bomb immunity. Every 1000 credits earned grants 1 immunity; using it costs 1000 credits and reduces Rocket Size and Multi-Missile by 1.
+        Do not tap bombs. Explosion radius will not set them off, but direct taps will end the game unless you have bomb immunity. Every 1000 current available credits gives 1 immunity; using it costs 1000 credits and reduces Rocket Size and Multi-Missile by 1.
       </p>
       <button onclick="continueAfterBombWarning()">Careful — Continue</button>
     </div>
@@ -1804,6 +2221,7 @@ window.continueAfterBombWarning = function() {
   state.paused = false;
   setPauseButtonNormal();
   state.lastTime = performance.now();
+  resetActiveTimer();
 };
 
 function maxObjectsToSpawn() {
@@ -1879,7 +2297,6 @@ function lockTarget(obj) {
   }
 
   if (obj.rocketsLaunched >= state.upgrades.missiles) {
-    showMessage("Max rockets locked on this target!");
     return;
   }
 
@@ -1926,6 +2343,15 @@ function launchRocket(target, tx, ty, isSpecialUfo = false) {
 }
 
 function createRocketTrailParticle(x, y, backX = 0, backY = 1, core = false) {
+  /*
+    Lite Mode intentionally has no particles.
+    It draws one simple fading line behind the rocket instead.
+  */
+  if (state.liteMode) {
+    if (core) createLiteTrailLine(x, y, backX, backY);
+    return;
+  }
+
   const trail = currentTrail();
   const p = document.createElement("div");
   const color = trail.colors[Math.floor(Math.random() * trail.colors.length)];
@@ -2046,7 +2472,8 @@ function updateRockets(dt, onlySpecial = false) {
       const trailX = r.x + backX * rocketBackOffset;
       const trailY = r.y + backY * rocketBackOffset;
       createRocketTrailParticle(trailX, trailY, backX, backY, true);
-      for (let i = 0; i < trail.density; i++) createRocketTrailParticle(trailX, trailY, backX, backY, false);
+      const emitCount = state.liteMode ? 1 : trail.density;
+      for (let i = 0; i < emitCount; i++) createRocketTrailParticle(trailX, trailY, backX, backY, false);
     }
 
     r.el.style.left = r.x + "px";
@@ -2107,18 +2534,26 @@ function createExplosion(x, y, scale = 1) {
   wrap.style.left = x + "px";
   wrap.style.top = y + "px";
 
+  const liteModeExplosion = !!state.liteMode;
+  const lite = liteExplosionStyle(effect);
   const ring = blastRadius() * 2.1 * scale;
-  const life = Math.floor(effect.life * scale);
+  const life = Math.floor((effect.life + (liteModeExplosion ? lite.lifeBonus : 0)) * scale);
 
   const shock = document.createElement("div");
   shock.className = "shockwave";
-  shock.style.borderColor = effect.colors[0] || "#ffffff";
+  shock.style.borderColor = liteModeExplosion ? lite.border : (effect.colors[0] || "#ffffff");
   shock.style.setProperty("--ring", ring + "px");
   shock.style.setProperty("--life", life + "ms");
-  shock.style.boxShadow = effect.radiusOnly ? "0 0 20px rgba(255,255,255,.85), inset 0 0 16px rgba(255,255,255,.35)" : "";
+  shock.style.boxShadow = (effect.radiusOnly || liteModeExplosion)
+    ? (liteModeExplosion ? lite.shadow : "0 0 20px rgba(255,255,255,.85), inset 0 0 16px rgba(255,255,255,.35)")
+    : "";
   wrap.appendChild(shock);
 
-  if (!effect.radiusOnly) {
+  /*
+    Lite Mode intentionally has no particle bursts.
+    It only shows colored circles so low-spec devices stay smooth.
+  */
+  if (!effect.radiusOnly && !liteModeExplosion) {
     const particles = Math.floor((effect.particles + state.upgrades.rocketSize * 4) * scale);
     const distance = (32 + effect.distanceBonus + state.upgrades.rocketSize * 8) * scale;
 
@@ -2137,7 +2572,7 @@ function createExplosion(x, y, scale = 1) {
   }
 
   game.appendChild(wrap);
-  setTimeout(() => wrap.remove(), effect.life + 650);
+  setTimeout(() => wrap.remove(), life + 650);
 }
 
 function createMeatExplosion(x, y) {
@@ -2230,6 +2665,82 @@ function createMeatExplosion(x, y) {
   setTimeout(() => master.remove(), isMobile ? 2100 : 2500);
 }
 
+
+
+function removeUfoMeatDecorations(ufoEl) {
+  if (!ufoEl) return;
+  ufoEl.querySelectorAll(".ufo-meat, .bundle").forEach(el => el.remove());
+  if (!ufoEl.textContent.includes("🛸")) {
+    ufoEl.insertBefore(document.createTextNode("🛸"), ufoEl.firstChild);
+  }
+}
+
+function shouldUfoDropHazards() {
+  return state.level >= 30;
+}
+
+function spawnUfoDrop(ufo, forcedSlot = false) {
+  if (!ufo || !ufo.el || !document.body.contains(ufo.el)) return;
+
+  const isSlot = forcedSlot || Math.random() < 0.12;
+  const icons = ["🔪", "🔨", "🔧"];
+  const icon = isSlot ? "🎰" : icons[Math.floor(Math.random() * icons.length)];
+
+  const el = document.createElement("div");
+  el.className = "falling ufo-drop " + (isSlot ? "slot" : "tool");
+  el.textContent = icon;
+  el.style.left = ufo.x + "px";
+  el.style.top = ufo.y + "px";
+  el.style.fontSize = isSlot ? "42px" : "38px";
+  game.appendChild(el);
+
+  const speed = (state.hardMode ? 150 : 125) + Math.min(120, state.cycle * 7 + state.difficultyLevel * 3);
+  ufoDrops.push({
+    el,
+    x: ufo.x,
+    y: ufo.y + 10,
+    vy: speed,
+    type: isSlot ? "slot" : "tool",
+    cost: isSlot ? (100 + Math.floor(Math.random() * 901)) : 0,
+    counted: false
+  });
+}
+
+function updateUfoDrops(dt) {
+  ufoDrops = ufoDrops.filter(drop => {
+    drop.y += drop.vy * dt;
+    drop.el.style.left = drop.x + "px";
+    drop.el.style.top = drop.y + "px";
+
+    if (drop.y > window.innerHeight - ground.offsetHeight - 14) {
+      if (!drop.counted) {
+        drop.counted = true;
+        if (drop.type === "slot") {
+          state.coins -= drop.cost;
+          showMessage("🎰 Slot machine took " + drop.cost + " credits!");
+        } else {
+          state.lives--;
+          document.body.classList.add("damage-flash");
+          setTimeout(() => document.body.classList.remove("damage-flash"), 300);
+          showMessage(drop.el.textContent + " UFO junk hit the ground! -1 life");
+        }
+        updateUI();
+        if (state.lives <= 0) gameOver();
+      }
+
+      drop.el.remove();
+      return false;
+    }
+
+    return true;
+  });
+}
+
+function clearUfoDropsForLevelComplete() {
+  ufoDrops.forEach(d => d.el?.remove());
+  ufoDrops = [];
+}
+
 function maybeSpawnUfo() {
   if (state.paused || state.nextReady || state.completingLevel) return;
   if (!state.ufoWillAppear || state.ufoSpawnedThisLevel) return;
@@ -2285,6 +2796,7 @@ window.startIntroUfo = function() {
   overlay.style.display = "none";
   state.paused = false;
   state.lastTime = performance.now();
+  resetActiveTimer();
   spawnUfo();
 };
 
@@ -2313,7 +2825,7 @@ function spawnUfo() {
   const el = document.createElement("div");
   el.className = "ufo";
   const shields = ufoShieldCount();
-  el.innerHTML = `<div class="shield">${shields}</div><div class="bundle">🥩🍗🍖</div>`;
+  el.innerHTML = `🛸<div class="shield">${shields}</div>`;
 
   const safeTop = Math.max(82, window.innerHeight * 0.14);
   const safeBottom = Math.max(safeTop + 40, Math.min(window.innerHeight - ground.offsetHeight - 95, window.innerHeight * 0.68));
@@ -2350,6 +2862,7 @@ function spawnUfo() {
   });
 
   game.appendChild(el);
+  removeUfoMeatDecorations(el);
   state.ufos.push(ufo);
   ufoSay(ufo, "Zaqxen Rei is flying!");
   setTimeout(() => ufoSay(ufo, "Wobble mode ON!"), 1300);
@@ -2415,6 +2928,7 @@ function beginSpecialUfoDestruction(ufo) {
 
   launchRocket(ufo, ufo.x + 48, ufo.y + 30, true);
   state.lastTime = performance.now();
+  resetActiveTimer();
 }
 
 function updateUfos(dt) {
@@ -2422,6 +2936,19 @@ function updateUfos(dt) {
     if (ufo.destroyed || ufo.frozen) return true;
 
     ufo.age += dt;
+
+    if (shouldUfoDropHazards() && !ufo.capturing && !ufo.escaping) {
+      ufo.dropTimer -= dt;
+      if (ufo.dropTimer <= 0) {
+        spawnUfoDrop(ufo, false);
+        ufo.dropTimer = 2.4 + Math.random() * (state.hardMode ? 2.3 : 3.4);
+      }
+
+      if (!ufo.slotDropped && ufo.age >= ufo.roamTime - 0.45) {
+        ufo.slotDropped = true;
+        spawnUfoDrop(ufo, true);
+      }
+    }
     ufo.changeTimer += dt;
 
     if (!ufo.escaping && ufo.age >= ufo.roamTime) {
@@ -2553,6 +3080,7 @@ window.continueAfterUfo = function() {
   state.paused = false;
   setPauseButtonNormal();
   state.lastTime = performance.now();
+  resetActiveTimer();
 };
 
 function remainingFallingObjects() {
@@ -2560,6 +3088,7 @@ function remainingFallingObjects() {
 }
 
 function removeAllActiveObjectsForCompletion() {
+  clearUfoDropsForLevelComplete();
   state.objects.forEach(obj => {
     if (obj.crosshair) obj.crosshair.remove();
     if (obj.el && document.body.contains(obj.el)) obj.el.remove();
@@ -2636,6 +3165,56 @@ function getUnlocksForLevel(level) {
   return unlocked;
 }
 
+
+function bestAffordableShopNotice() {
+  const candidates = [];
+
+  for (const item of upgradeItems) {
+    const lvl = state.upgrades[item.key];
+    const cost = item.base * lvl;
+    if (state.level >= item.unlockLevel && lvl < item.max && state.coins >= cost) {
+      candidates.push({
+        type: "Upgrade",
+        name: item.name,
+        cost,
+        priority: cost + lvl * 25
+      });
+    }
+  }
+
+  for (const effect of explosionEffects) {
+    if (canBuyEffect(effect)) {
+      const idx = itemIndexById(explosionEffects, effect.id);
+      candidates.push({
+        type: "Explosion",
+        name: effect.name,
+        cost: effect.cost,
+        priority: effect.cost + idx * 80
+      });
+    }
+  }
+
+  for (const trail of rocketTrails) {
+    if (canBuyTrail(trail)) {
+      const idx = itemIndexById(rocketTrails, trail.id);
+      candidates.push({
+        type: "Trail",
+        name: trail.name,
+        cost: trail.cost,
+        priority: trail.cost + idx * 60
+      });
+    }
+  }
+
+  if (!candidates.length) return "";
+
+  candidates.sort((a, b) => b.priority - a.priority);
+  const best = candidates[0];
+
+  return `<p><strong>Top affordable item:</strong><br>${best.type}: ${best.name} — ${best.cost} credits</p>`;
+}
+
+
 function showLevelComplete() {
   state.nextReady = true;
   state.levelCompleteShown = true;
@@ -2650,6 +3229,7 @@ function showLevelComplete() {
       : `<p>No new shop unlock next level, but rewards and difficulty increase.</p>`;
 
   const affordAnything = canBuyAnything();
+  const premiumNotice = bestAffordableShopNotice();
 
   overlay.style.display = "grid";
   overlay.innerHTML = `
@@ -2657,6 +3237,7 @@ function showLevelComplete() {
       <h1>Level ${state.level} Cleared!</h1>
       <p>You have <strong>${state.coins}</strong> credits.</p>
       ${unlockText}
+      ${premiumNotice}
       ${affordAnything ? `<p>Visit the shop before continuing?</p>` : `<p><strong>Not enough credits to buy anything yet.</strong></p>`}
       <div class="button-row">
         <button onclick="openShop(true)">${affordAnything ? "Shop Upgrades" : "View Upgrades"}</button>
@@ -2743,6 +3324,22 @@ function canBuyAnything() {
 }
 
 function explosionPreviewHtml(effect) {
+  if (state.liteMode) {
+    const lite = liteExplosionStyle(effect);
+    return `
+      <div class="preview">
+        <div class="lite-preview-blast"
+          style="
+            --lite-ring:${Math.max(74, blastRadius() * 1.35)}px;
+            --lite-dur:${((effect.life + lite.lifeBonus) / 1000).toFixed(2)}s;
+            --lite-border:${lite.border};
+            --lite-shadow:${lite.shadow};
+          ">
+        </div>
+      </div>
+    `;
+  }
+
   if (effect.radiusOnly) {
     return `
       <div class="preview">
@@ -2782,6 +3379,25 @@ function explosionPreviewHtml(effect) {
 }
 
 function trailPreviewHtml(trail) {
+  if (state.liteMode) {
+    const lite = liteTrailStyle(trail);
+    return `
+      <div class="preview">
+        <div class="preview-trail">
+          <div class="lite-preview-line"
+            style="
+              --lite-line-w:${lite.w}px;
+              --lite-line-h:${lite.h}px;
+              --lite-line-bg:${lite.bg};
+              --lite-line-shadow:${lite.shadow};
+            ">
+          </div>
+          <div class="preview-rocket"><span>🚀</span></div>
+        </div>
+      </div>
+    `;
+  }
+
   const pieces = [];
   const isBasic = trail.id === "tiny";
   const count = isBasic ? 10 : 12 + trail.density * 4;
@@ -2827,6 +3443,7 @@ function trailPreviewHtml(trail) {
     </div>
   `;
 }
+
 
 
 function currentShopScroll() {
@@ -2932,6 +3549,11 @@ function openShop(fromLevelEnd = false, scrollTop = 0) {
         </div>
       </div>
 
+      <div class="lite-mode-shop-control">
+        <span><strong>Lite Mode:</strong> ${state.liteMode ? "ON" : "OFF"}<br><small>Simple circles and lines for low-spec devices.</small></span>
+        <button onclick="toggleLiteModeFromShop(${fromLevelEnd ? "true" : "false"})">${state.liteMode ? "Turn Off" : "Turn On"}</button>
+      </div>
+
       <h2>Upgrades</h2>
       <div class="shop-grid">${upgradeHtml}</div>
 
@@ -2947,6 +3569,17 @@ function openShop(fromLevelEnd = false, scrollTop = 0) {
   `;
   restoreShopScroll(scrollTop);
 }
+
+
+window.toggleLiteModeFromShop = function(fromLevelEnd = false) {
+  state.liteMode = !state.liteMode;
+  showMessage(state.liteMode ? "Lite Mode on: simpler effects" : "Lite Mode off: full effects");
+  openShop(fromLevelEnd, currentShopScroll());
+};
+
+window.toggleLiteMode = function() {
+  toggleLiteModeFromShop(false);
+};
 
 window.closeShop = function() {
   if (state.running && state.nextReady) {
@@ -2975,6 +3608,7 @@ window.closeShop = function() {
   state.paused = false;
   setPauseButtonNormal();
   state.lastTime = performance.now();
+  resetActiveTimer();
 };
 
 
@@ -3070,6 +3704,36 @@ function triggerBombGameOver() {
 }
 
 
+
+function resetActiveTimer() {
+  state.activeTimerLast = performance.now();
+}
+
+function accumulateActiveTime(now = performance.now()) {
+  if (!state.running || state.paused || overlay.style.display !== "none") {
+    state.activeTimerLast = now;
+    return;
+  }
+
+  if (!state.activeTimerLast) state.activeTimerLast = now;
+  const delta = Math.max(0, Math.min(250, now - state.activeTimerLast));
+  state.activePlayMs += delta;
+  state.activeTimerLast = now;
+}
+
+function formatRunTime(ms) {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) {
+    return `${hours}h ${String(minutes).padStart(2, "0")}m`;
+  }
+
+  return `${minutes}m ${String(seconds).padStart(2, "0")}s`;
+}
+
 function formatShareDate(date = new Date()) {
   const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   let h = date.getHours();
@@ -3098,6 +3762,7 @@ function scoreRank(score, hardMode) {
 }
 
 function gameOver() {
+  accumulateActiveTime(performance.now());
   if (!state.running && state.gameOverShown) return;
   state.gameOverShown = true;
   state.running = false;
@@ -3173,7 +3838,7 @@ function renderFinalResult() {
         <div class="result-pop" ${delay(9)}><strong>${state.upgrades.rocketSize}/${MAX_ROCKET_SIZE}</strong>🚀 Size</div>
         <div class="result-pop" ${delay(10)}><strong>${state.upgrades.missiles}/4</strong>🎯 Multi</div>
         <div class="result-pop" ${delay(11)}><strong>${state.upgrades.trailLength}/7</strong>✨ Trail</div>
-        <div class="result-pop" ${delay(12)}><strong>${state.bombImmunity || 0}</strong>🛡️ Shield</div>
+        <div class="result-pop" ${delay(12)}><strong>${bombImmunityCount()}</strong>🛡️ Shield</div>
       </div>
 
       <div class="share-icons">
@@ -3188,7 +3853,7 @@ function renderFinalResult() {
         <div class="result-pop" ${delay(18)}><strong>${state.ownedEffects.length}</strong>Effects</div>
         <div class="result-pop" ${delay(19)}><strong>${state.ownedTrails.length}</strong>Trails</div>
         <div class="result-pop" ${delay(20)}><strong>${state.missedTargets || 0}</strong>Missed</div>
-        <div class="result-pop" ${delay(21)}><strong>${state.hardMode ? "Hard" : "Normal"}</strong>Mode</div>
+        <div class="result-pop" ${delay(21)}><strong>${formatRunTime(state.activePlayMs)}</strong>Run Time</div>
       </div>
 
       <div class="button-row share-actions result-pop" ${delay(22)}>
@@ -3198,6 +3863,7 @@ function renderFinalResult() {
   `;
 }
 
+let ufoDrops = [];
 let gameOverFireworks = { running: false, raf: null, ctx: null, canvas: null, fireworks: [], particles: [], last: 0, launchTimer: 0 };
 
 function startGameOverFireworks() {
@@ -3345,7 +4011,7 @@ function showPauseLegend() {
         <div><strong>🪙 Credits</strong>Available credits: ${state.coins}</div>
         <div><strong>🎯 Target</strong>Cleared targets: ${state.cleared}/${state.total}</div>
         <div><strong>🛸 UFO</strong>Captured UFOs: ${state.ufoCaught || 0}</div>
-        <div><strong>🛡️ Bomb Immunity</strong>Available shields: ${state.bombImmunity || 0}</div>
+        <div><strong>🛡️ Bomb Immunity</strong>Available shields: ${bombImmunityCount()}</div>
       </div>
       <div class="button-row">
         <button onclick="resumeFromPauseLegend()">Continue</button>
@@ -3360,6 +4026,7 @@ window.resumeFromPauseLegend = function() {
   state.paused = false;
   setPauseButtonNormal();
   state.lastTime = performance.now();
+  resetActiveTimer();
 };
 
 
@@ -3392,8 +4059,38 @@ window.closeDeveloperInfo = function(wasPaused) {
   if (state.running) {
     state.paused = !!wasPaused;
     if (!state.paused) state.lastTime = performance.now();
+  resetActiveTimer();
   }
 };
+
+
+function pauseForInterruption(title = "Game Paused", detail = "The screen changed, rotated, or was locked. Gameplay is paused so you do not lose by accident.") {
+  if (!state.running || state.nextReady || state.gameOverShown) return;
+  if (overlay.style.display && overlay.style.display !== "none") return;
+
+  state.paused = true;
+  setPauseButtonNormal();
+  overlay.style.background = "rgba(0,0,0,.58)";
+  overlay.style.display = "grid";
+  overlay.innerHTML = `
+    <div class="card">
+      <h1>${title}</h1>
+      <p>${detail}</p>
+      <div class="button-row">
+        <button onclick="resumeAfterInterruption()">Continue</button>
+      </div>
+    </div>
+  `;
+}
+
+window.resumeAfterInterruption = function() {
+  overlay.style.display = "none";
+  state.paused = false;
+  setPauseButtonNormal();
+  state.lastTime = performance.now();
+  resetActiveTimer();
+};
+
 
 function pauseForRotation() {
   if (!state.running) return;
@@ -3417,6 +4114,7 @@ window.resumeAfterRotation = function() {
   state.paused = false;
   setPauseButtonNormal();
   state.lastTime = performance.now();
+  resetActiveTimer();
 };
 
 function loop(now) {
@@ -3437,6 +4135,7 @@ function loop(now) {
     maybeSpawnUfo();
     updateObjects(dt);
     updateUfos(dt);
+    updateUfoDrops(dt);
     updateRockets(dt);
     checkCompletionFailsafe(dt);
   } else {
@@ -3498,6 +4197,7 @@ ui.pauseBtn.addEventListener("click", () => {
     setPauseButtonNormal();
     showMessage("Resumed");
     state.lastTime = performance.now();
+  resetActiveTimer();
   } else {
     showPauseLegend();
   }
@@ -3506,6 +4206,20 @@ ui.pauseBtn.addEventListener("click", () => {
 ui.nextBtn.addEventListener("click", () => {});
 
 window.addEventListener("orientationchange", () => setTimeout(pauseForRotation, 250));
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) {
+    pauseForInterruption("Game Paused", "The screen was hidden, locked, or switched away. Gameplay is paused so you do not lose by accident.");
+  }
+});
+
+window.addEventListener("blur", () => {
+  pauseForInterruption("Game Paused", "The browser lost focus. Gameplay is paused so you do not lose by accident.");
+});
+
+window.addEventListener("pagehide", () => {
+  pauseForInterruption("Game Paused", "The page was hidden. Gameplay is paused so you do not lose by accident.");
+});
+
 
 let resizeTimer;
 window.addEventListener("resize", () => {
