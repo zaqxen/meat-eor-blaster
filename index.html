@@ -288,6 +288,46 @@ button:disabled {
   to { opacity: .55; scale: 1.05; }
 }
 
+.miss-crosshair {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  z-index: 24;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(.82);
+  border: 1.5px solid var(--red);
+  border-radius: 50%;
+  box-shadow: 0 0 9px rgba(255,84,56,.85);
+  animation: missCrosshairFade .58s ease-out forwards;
+}
+
+.miss-crosshair::before,
+.miss-crosshair::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  background: var(--red);
+  box-shadow: 0 0 8px rgba(255,84,56,.9);
+  transform: translate(-50%, -50%);
+}
+
+.miss-crosshair::before {
+  width: 1.5px;
+  height: 30px;
+}
+
+.miss-crosshair::after {
+  width: 30px;
+  height: 1.5px;
+}
+
+@keyframes missCrosshairFade {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(.74); }
+  72% { opacity: .9; }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.18); }
+}
+
 .rocket {
   position: absolute;
   z-index: 16;
@@ -1184,6 +1224,12 @@ body.hard-mode button {
   padding-right: 10px;
 }
 
+.small-help-btn {
+  min-width: 34px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
 
 /* Scrolling rules:
    - Gameplay remains locked.
@@ -1735,6 +1781,8 @@ const state = {
   pointerY: window.innerHeight / 2
 };
 
+let ufoDrops = [];
+
 function updateUI() {
   state.bombImmunity = bombImmunityCount();
   ui.level.textContent = state.level;
@@ -1992,7 +2040,8 @@ function initStarfield() {
 }
 
 function clearField() {
-  document.querySelectorAll(".falling,.rocket,.explosion,.crosshair,.ufo,.trail-particle,.screen-boom").forEach(el => el.remove());
+  document.querySelectorAll(".falling,.rocket,.explosion,.crosshair,.miss-crosshair,.ufo,.trail-particle,.screen-boom").forEach(el => el.remove());
+  if (Array.isArray(ufoDrops)) ufoDrops = [];
 }
 
 function desiredFallTime() {
@@ -2056,7 +2105,13 @@ function prepareUfoForLevel() {
 }
 
 
-window.showHelp = function() {
+window.showHelp = function(source = "title") {
+  const fromPause = source === "pause" || (state.running && state.paused);
+  const actionButtons = fromPause
+    ? `<button onclick="showPauseLegend()">Back to Pause</button><button onclick="resumeFromPauseLegend()">Resume</button>`
+    : `<button onclick="backToTitle()">Back</button><button onclick="startGame()">Start Game</button>`;
+
+  if (state.running) state.paused = true;
   overlay.style.background = "rgba(0,0,0,.58)";
   overlay.style.display = "grid";
   overlay.innerHTML = `
@@ -2072,14 +2127,16 @@ window.showHelp = function() {
         <div><strong>🛡️ Bomb Immunity</strong><br>Every 1000 current available credits gives 1 bomb immunity. If you spend credits, available immunity can go down. If you tap a bomb by accident, immunity saves you, but costs 1000 credits and lowers Rocket Size and Multi-Missile by 1.</div>
         <div><strong>🔥 Hard Mode</strong><br>Selectable only at the beginning. Red theme, faster falling objects, more targets, and more bombs from level 1.</div>
         <div><strong>🛸 UFO Bonus</strong><br>Appears randomly after half of some levels. Tap to break shields. Capturing it gives a big credit reward and extra lives.</div>
+        <div><strong>🔪🔨🔧 UFO Droppings from Level 30</strong><br>Starting at level 30, UFOs can randomly drop knives, hammers, and wrenches while flying. These tool drops cannot be destroyed. If they hit the ground, you lose 1 life.</div>
+        <div><strong>🎰 Slot Machine Drop</strong><br>Near the end of a level-30+ UFO visit, a slot machine can drop. If it reaches the ground, it steals a random 100-1000 credits. Finish the level before UFO droppings land to clear them safely.</div>
+        <div><strong>❌ Miss Tap Marker</strong><br>If you tap empty space instead of a meat-eor, meteor, bomb, or UFO, a tiny red crosshair appears exactly where you tapped to show the missed click.</div>
         <div><strong>Multi-Missile Tap</strong><br>For meteors: lets you tap the same locked target multiple times, launching more rockets. For UFOs: each tap removes shields equal to your Multi-Missile level. Mobile multi-touch is allowed, so be careful near bombs.</div>
         <div><strong>Starter Explosion</strong><br>Your starter pack includes a white expanding circle so you can see the current blast radius.</div>
         <div><strong>Rocket Size</strong><br>Increases blast radius and unlocks grander explosion effects.</div>
         <div><strong>Trail Length</strong><br>Makes rocket trail particles fade slower, creating longer visible trails and unlocking stronger trail styles.</div>
       </div>
       <div class="button-row">
-        <button onclick="backToTitle()">Back</button>
-        <button onclick="startGame()">Start Game</button>
+        ${actionButtons}
       </div>
     </div>
   `;
@@ -2311,6 +2368,17 @@ function createCrosshair(x, y) {
   ch.style.top = y + "px";
   game.appendChild(ch);
   return ch;
+}
+
+function createMissCrosshair(x, y) {
+  if (!state.running || state.paused || overlay.style.display !== "none") return;
+
+  const ch = document.createElement("div");
+  ch.className = "miss-crosshair";
+  ch.style.left = x + "px";
+  ch.style.top = y + "px";
+  game.appendChild(ch);
+  setTimeout(() => ch.remove(), 650);
 }
 
 function launchRocket(target, tx, ty, isSpecialUfo = false) {
@@ -2687,18 +2755,24 @@ function spawnUfoDrop(ufo, forcedSlot = false) {
   const icon = isSlot ? "🎰" : icons[Math.floor(Math.random() * icons.length)];
 
   const el = document.createElement("div");
+  const dropSize = isSlot ? 46 : 42;
+  const dropX = ufo.x - dropSize / 2;
+  const dropY = ufo.y - dropSize / 2 + 10;
+
   el.className = "falling ufo-drop " + (isSlot ? "slot" : "tool");
   el.textContent = icon;
-  el.style.left = ufo.x + "px";
-  el.style.top = ufo.y + "px";
+  el.style.left = dropX + "px";
+  el.style.top = dropY + "px";
+  el.style.width = dropSize + "px";
+  el.style.height = dropSize + "px";
   el.style.fontSize = isSlot ? "42px" : "38px";
   game.appendChild(el);
 
   const speed = (state.hardMode ? 150 : 125) + Math.min(120, state.cycle * 7 + state.difficultyLevel * 3);
   ufoDrops.push({
     el,
-    x: ufo.x,
-    y: ufo.y + 10,
+    x: dropX,
+    y: dropY,
     vy: speed,
     type: isSlot ? "slot" : "tool",
     cost: isSlot ? (100 + Math.floor(Math.random() * 901)) : 0,
@@ -2852,7 +2926,9 @@ function spawnUfo() {
     safeTop, safeBottom, safeLeft, safeRight,
     frozen: false,
     destroyed: false,
-    lastTapAt: 0
+    lastTapAt: 0,
+    dropTimer: shouldUfoDropHazards() ? 0.85 + Math.random() * 1.25 : Infinity,
+    slotDropped: false
   };
 
   el.addEventListener("pointerdown", e => {
@@ -2938,6 +3014,10 @@ function updateUfos(dt) {
     ufo.age += dt;
 
     if (shouldUfoDropHazards() && !ufo.capturing && !ufo.escaping) {
+      if (!Number.isFinite(ufo.dropTimer)) {
+        ufo.dropTimer = 0.85 + Math.random() * 1.25;
+      }
+
       ufo.dropTimer -= dt;
       if (ufo.dropTimer <= 0) {
         spawnUfoDrop(ufo, false);
@@ -3863,7 +3943,6 @@ function renderFinalResult() {
   `;
 }
 
-let ufoDrops = [];
 let gameOverFireworks = { running: false, raf: null, ctx: null, canvas: null, fireworks: [], particles: [], last: 0, launchTimer: 0 };
 
 function startGameOverFireworks() {
@@ -4002,7 +4081,7 @@ function showPauseLegend() {
   overlay.innerHTML = `
     <div class="card">
       <h1>Paused</h1>
-      <p>Here is what the top icons mean during gameplay.</p>
+      <p>Here is what the top icons mean during gameplay. Tap the small ? button here anytime to reopen the full Help & Instructions.</p>
       <div class="pause-stat-grid">
         <div><strong>⭐ Level</strong>Current level: ${state.level}</div>
         <div><strong>🔁 Run</strong>Difficulty cycle: ${state.cycle}</div>
@@ -4016,6 +4095,7 @@ function showPauseLegend() {
       <div class="button-row">
         <button onclick="resumeFromPauseLegend()">Continue</button>
         <button onclick="openShop(false)">Shop</button>
+        <button class="small-help-btn" title="Help & Instructions" onclick="showHelp('pause')">?</button>
       </div>
     </div>
   `;
@@ -4171,6 +4251,8 @@ function handleTouchMultiTap(e) {
     } else if (ufoEl) {
       const ufo = state.ufos.find(u => u.el === ufoEl);
       if (ufo) tapUfo(ufo);
+    } else if (!window.PointerEvent) {
+      createMissCrosshair(touch.clientX, touch.clientY);
     }
   }
 }
@@ -4180,6 +4262,10 @@ game.addEventListener("pointermove", e => updatePointer(e.clientX, e.clientY));
 game.addEventListener("pointerdown", e => {
   if (overlay.style.display !== "none") return;
   updatePointer(e.clientX, e.clientY);
+
+  if (!state.running || state.paused) return;
+  if (e.target.closest("#hud, button, input, .ufo, .falling:not(.ufo-drop)")) return;
+  createMissCrosshair(e.clientX, e.clientY);
 });
 game.addEventListener("touchstart", handleTouchMultiTap, { passive: true });
 
