@@ -15,6 +15,12 @@
   --green: #84ff8c;
   --red: #ff5438;
   --ground: 70px;
+  --app-height: 100dvh;
+  --app-width: 100vw;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
 }
 
 * {
@@ -22,9 +28,17 @@
   user-select: none;
   -webkit-tap-highlight-color: transparent;}
 
+html,
 body {
+  width: 100%;
+  height: var(--app-height, 100dvh);
+  min-height: 0;
   margin: 0;
   overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
   background: radial-gradient(circle at top, #173f46, #061017 48%, #020507);
   color: var(--text);
   font-family: system-ui, Arial, sans-serif;
@@ -32,9 +46,10 @@ body {
 
 #game {
   position: relative;
-  width: 100vw;
-  height: 100dvh;
-  min-height: 100vh;
+  width: var(--app-width, 100vw);
+  height: var(--app-height, 100dvh);
+  min-height: 0;
+  max-height: var(--app-height, 100dvh);
   overflow: hidden;
   touch-action: none;
 }
@@ -526,13 +541,16 @@ button:disabled {
   display: grid;
   place-items: center;
   background: rgba(0,0,0,.58);
-  padding: 10px;
+  padding: max(10px, var(--safe-top)) max(10px, var(--safe-right)) max(24px, var(--safe-bottom)) max(10px, var(--safe-left));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .card {
-  width: min(94vw, 700px);
-  max-height: 92dvh;
+  width: min(calc(var(--app-width, 100vw) - 20px), 700px);
+  max-height: calc(var(--app-height, 100dvh) - 34px - var(--safe-top) - var(--safe-bottom));
   overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--panel);
   border: 1px solid rgba(255,178,58,.42);
   border-radius: 22px;
@@ -557,6 +575,7 @@ button:disabled {
   gap: 8px;
   flex-wrap: wrap;
   margin-top: 14px;
+  padding-bottom: max(0px, calc(var(--safe-bottom) - 6px));
 }
 
 .shop-grid {
@@ -782,7 +801,7 @@ button:disabled {
 @media (max-width: 390px), (max-height: 700px) {
   .final-score-card {
     width: min(96vw, 420px);
-    max-height: 88dvh;
+    max-height: calc(var(--app-height, 100dvh) - 34px - var(--safe-top) - var(--safe-bottom));
     padding: 12px;
   }
 
@@ -839,7 +858,7 @@ button:disabled {
   #hud { font-size: 12px; }
   .pill, button { padding: 5px 8px; font-size: 12px; }
   #launcher { bottom: 25px; }
-  .card { max-height: 88dvh; }
+  .card { max-height: calc(var(--app-height, 100dvh) - 34px - var(--safe-top) - var(--safe-bottom)); }
 }
 
 @media (max-width: 390px) {
@@ -1037,7 +1056,7 @@ body.hard-mode button {
 
 .final-score-card.share-card {
   width: min(96vw, 390px);
-  max-height: min(94dvh, 620px);
+  max-height: min(calc(var(--app-height, 100dvh) - 28px - var(--safe-top) - var(--safe-bottom)), 620px);
   overflow: hidden;
   padding: 10px;
   border-radius: 18px;
@@ -1156,7 +1175,7 @@ body.hard-mode button {
 @media (max-width: 390px), (max-height: 700px) {
   .final-score-card.share-card {
     width: 96vw;
-    max-height: 88dvh;
+    max-height: calc(var(--app-height, 100dvh) - 34px - var(--safe-top) - var(--safe-bottom));
     padding: 8px;
     border-radius: 16px;
   }
@@ -1575,6 +1594,98 @@ button,
   content: none !important;
 }
 
+
+/* Compact numeric HUD override: smaller type + tighter spacing for small screens. */
+#hud {
+  gap: 5px;
+  font-size: 12px;
+}
+
+#hud .hud-combo {
+  gap: 4px;
+  padding: 5px 7px;
+  font-size: 12px;
+  max-width: 100%;
+}
+
+#hud .hud-combo .hud-stat {
+  min-width: 0;
+  letter-spacing: -0.15px;
+}
+
+#hud .stat-row:last-child {
+  flex: 0 0 auto;
+  gap: 4px;
+}
+
+#devInfoBtn,
+#shopBtn,
+#pauseBtn,
+#nextBtn {
+  padding: 5px 7px;
+  font-size: 11px;
+  line-height: 1.05;
+}
+
+@media (max-width: 430px) {
+  #hud {
+    top: max(5px, env(safe-area-inset-top));
+    left: 4px;
+    right: 4px;
+    gap: 3px;
+  }
+
+  #hud .hud-combo-row {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  #hud .hud-combo {
+    gap: 2px;
+    padding: 4px 4px;
+    font-size: 10px;
+    letter-spacing: -0.2px;
+  }
+
+  #hud .hud-combo .hud-stat {
+    gap: 1px;
+  }
+
+  #hud .hud-sep {
+    height: 11px;
+  }
+
+  #devInfoBtn,
+  #shopBtn,
+  #pauseBtn,
+  #nextBtn {
+    padding: 4px 5px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 340px) {
+  #hud .hud-combo {
+    font-size: 9px;
+    padding-left: 3px;
+    padding-right: 3px;
+  }
+
+  #hud .hud-icon {
+    transform: scale(.9);
+    transform-origin: center;
+  }
+
+  #devInfoBtn,
+  #shopBtn,
+  #pauseBtn,
+  #nextBtn {
+    padding-left: 4px;
+    padding-right: 4px;
+    font-size: 9.5px;
+  }
+}
+
 </style>
 </head>
 
@@ -1739,6 +1850,11 @@ const state = {
   hardMode: false,
   playerName: "Player",
   liteMode: false,
+  runId: "",
+  saveContinueCount: 0,
+  dangerContinueCount: 0,
+  lastDangerContinueGap: 0,
+  lastDangerContinueKind: "",
   activePlayMs: 0,
   activeTimerLast: 0,
   lives: 5,
@@ -1760,6 +1876,7 @@ const state = {
   levelCompleteShown: false,
   completingLevel: false,
   gameOverShown: false,
+  ignoreViewportPauseUntil: 0,
   ufoSpawnedThisLevel: false,
   ufoWillAppear: false,
   ufoDelay: 0,
@@ -1777,21 +1894,533 @@ const state = {
   selectedEffect: "starter",
   ownedTrails: ["tiny"],
   selectedTrail: "tiny",
-  pointerX: window.innerWidth / 2,
-  pointerY: window.innerHeight / 2
+  pointerX: viewportWidth() / 2,
+  pointerY: viewportHeight() / 2
 };
 
 let ufoDrops = [];
 
+
+const SAVE_VERSION = 2;
+const SAVE_KEY = "meatEorBlaster.checkpoint.v2";
+const SAVE_MIRROR_KEY = "meatEorBlaster.checkpoint.mirror.v2";
+const SAVE_SALT = ["Meat", "eor", "Zaqxen", "Rei", "Mark", "Morgan", "local", "checkpoint"].join("|");
+let lastPeriodicSaveAt = 0;
+let lastSaveProblem = "";
+
+function makeRunId() {
+  const rand = Math.floor(Math.random() * 0x7fffffff).toString(36);
+  return Date.now().toString(36) + "-" + rand;
+}
+
+function clampInt(value, min, max, fallback) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(min, Math.min(max, Math.trunc(n)));
+}
+
+function formatExactNumber(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "0";
+  return Math.trunc(n).toLocaleString("en-US");
+}
+
+function formatCompactNumber(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "0";
+  const sign = n < 0 ? "-" : "";
+  const abs = Math.abs(Math.trunc(n));
+  if (abs < 1000) return sign + String(abs);
+
+  const units = [
+    { value: 1000000000000, suffix: "T" },
+    { value: 1000000000, suffix: "B" },
+    { value: 1000000, suffix: "M" },
+    { value: 1000, suffix: "K" }
+  ];
+
+  for (let i = 0; i < units.length; i++) {
+    const unit = units[i];
+    if (abs >= unit.value) {
+      let rounded = Math.round((abs / unit.value) * 10) / 10;
+      if (rounded >= 1000 && i > 0) {
+        const next = units[i - 1];
+        rounded = Math.round((abs / next.value) * 10) / 10;
+        return sign + rounded.toFixed(1) + next.suffix;
+      }
+      return sign + rounded.toFixed(1) + unit.suffix;
+    }
+  }
+
+  return sign + String(abs);
+}
+
+function formatCompactPair(a, b) {
+  return formatCompactNumber(a) + "/" + formatCompactNumber(b);
+}
+
+
+function canonicalStringify(value) {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return "[" + value.map(canonicalStringify).join(",") + "]";
+  return "{" + Object.keys(value).sort().map(key => JSON.stringify(key) + ":" + canonicalStringify(value[key])).join(",") + "}";
+}
+
+function tamperHash(input, seed = 0x4d454154) {
+  let h1 = 0xdeadbeef ^ seed;
+  let h2 = 0x41c6ce57 ^ seed;
+  for (let i = 0; i < input.length; i++) {
+    const ch = input.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return ((h2 >>> 0).toString(36).padStart(7, "0") + (h1 >>> 0).toString(36).padStart(7, "0"));
+}
+
+function signSavePayload(payload) {
+  const important = [
+    payload.v,
+    payload.runId,
+    payload.level,
+    payload.difficultyLevel,
+    payload.cycle,
+    payload.hardMode ? 1 : 0,
+    payload.lives,
+    payload.coins,
+    payload.score,
+    payload.missedTargets,
+    payload.missedUfos,
+    payload.ufoCaught,
+    payload.saveContinueCount || 0,
+    payload.dangerContinueCount || 0,
+    payload.lastThreatGap,
+    payload.savedAt
+  ].join("|");
+  return tamperHash(canonicalStringify(payload) + "|" + SAVE_SALT + "|" + important, 0x5a415158);
+}
+
+function validUniqueIds(values, allowedIds, requiredId) {
+  const allowed = new Set(allowedIds);
+  const out = [];
+  for (const id of Array.isArray(values) ? values : []) {
+    if (allowed.has(id) && !out.includes(id)) out.push(id);
+  }
+  if (requiredId && allowed.has(requiredId) && !out.includes(requiredId)) out.unshift(requiredId);
+  return out;
+}
+
+function expectedCycleForLevel(level) {
+  return Math.floor((Math.max(1, level) - 1) / MAX_LEVEL) + 1;
+}
+
+function expectedDifficultyForLevel(level) {
+  return ((Math.max(1, level) - 1) % MAX_LEVEL) + 1;
+}
+
+function normalizeSavePayload(raw) {
+  if (!raw || raw.game !== "meat-eor-blaster" || raw.v !== SAVE_VERSION) throw new Error("Unsupported save version.");
+
+  const level = clampInt(raw.level, 1, 999999, 1);
+  const expectedCycle = expectedCycleForLevel(level);
+  const expectedDifficulty = expectedDifficultyForLevel(level);
+  const difficultyLevel = clampInt(raw.difficultyLevel, 1, MAX_LEVEL, expectedDifficulty);
+  const cycle = clampInt(raw.cycle, 1, 999999, expectedCycle);
+  if (difficultyLevel !== expectedDifficulty || cycle !== expectedCycle) throw new Error("Level checkpoint mismatch.");
+
+  const effectIds = explosionEffects.map(e => e.id);
+  const trailIds = rocketTrails.map(t => t.id);
+  const ownedEffects = validUniqueIds(raw.ownedEffects, effectIds, "starter");
+  const ownedTrails = validUniqueIds(raw.ownedTrails, trailIds, "tiny");
+  const selectedEffect = ownedEffects.includes(raw.selectedEffect) ? raw.selectedEffect : "starter";
+  const selectedTrail = ownedTrails.includes(raw.selectedTrail) ? raw.selectedTrail : "tiny";
+
+  const upgrades = raw.upgrades || {};
+  const stats = raw.stats || {};
+  const payload = {
+    v: SAVE_VERSION,
+    game: "meat-eor-blaster",
+    runId: String(raw.runId || makeRunId()).slice(0, 64),
+    savedAt: clampInt(raw.savedAt, 1, 4102444800000, Date.now()),
+    level,
+    difficultyLevel,
+    cycle,
+    hardMode: !!raw.hardMode,
+    playerName: String(raw.playerName || "Player").slice(0, 16) || "Player",
+    liteMode: !!raw.liteMode,
+    activePlayMs: clampInt(raw.activePlayMs, 0, 9999999999, 0),
+    lives: clampInt(raw.lives, 1, 9999, 5),
+    coins: clampInt(raw.coins, -999999999, 999999999, 0),
+    score: clampInt(raw.score, 0, 9999999999, 0),
+    nextReady: !!raw.nextReady,
+    ufoIntroSeen: !!raw.ufoIntroSeen,
+    ufoCaught: clampInt(raw.ufoCaught, 0, 999999, 0),
+    ufoLivesGained: clampInt(raw.ufoLivesGained, 0, 999999, 0),
+    stats: {
+      steak: clampInt(stats.steak, 0, 9999999, 0),
+      chicken: clampInt(stats.chicken, 0, 9999999, 0),
+      rib: clampInt(stats.rib, 0, 9999999, 0),
+      meteor: clampInt(stats.meteor, 0, 9999999, 0)
+    },
+    missedTargets: clampInt(raw.missedTargets, 0, 9999999, 0),
+    missedUfos: clampInt(raw.missedUfos, 0, 9999999, 0),
+    saveContinueCount: clampInt(raw.saveContinueCount, 0, 999999, 0),
+    dangerContinueCount: clampInt(raw.dangerContinueCount, 0, 999999, 0),
+    lastDangerContinueGap: clampInt(raw.lastDangerContinueGap, 0, 999999, 0),
+    lastDangerContinueKind: String(raw.lastDangerContinueKind || "").slice(0, 32),
+    lastThreatGap: clampInt(raw.lastThreatGap, -9999, 999999, 999999),
+    lastThreatThreshold: clampInt(raw.lastThreatThreshold, 1, 9999, 120),
+    lastThreatKind: String(raw.lastThreatKind || "none").slice(0, 32),
+    lastThreatRisk: clampInt(raw.lastThreatRisk, 0, 100, 0),
+    upgrades: {
+      rocketSize: clampInt(upgrades.rocketSize, 1, MAX_ROCKET_SIZE, 1),
+      missiles: clampInt(upgrades.missiles, 1, 4, 1),
+      trailLength: clampInt(upgrades.trailLength, 1, 7, 1)
+    },
+    ownedEffects,
+    selectedEffect,
+    ownedTrails,
+    selectedTrail
+  };
+
+  if (!payload.ownedEffects.includes(payload.selectedEffect) || !payload.ownedTrails.includes(payload.selectedTrail)) {
+    throw new Error("Selected item not owned.");
+  }
+
+  return payload;
+}
+
+
+function activeSaveThreatSnapshot() {
+  const threshold = Math.round(Math.max(72, Math.min(170, viewportHeight() * 0.17)));
+  const groundTop = viewportHeight() - (ground ? ground.offsetHeight : 70);
+  let best = {
+    gap: 999999,
+    threshold,
+    kind: "none",
+    risk: 0
+  };
+
+  for (const obj of Array.isArray(state.objects) ? state.objects : []) {
+    if (!obj || obj.counted || obj.type === "bomb" || obj.frozen) continue;
+    const bottom = (obj.y || 0) + (obj.size || 0);
+    const gap = Math.round(groundTop - bottom);
+    if (gap < best.gap) {
+      best = {
+        gap,
+        threshold,
+        kind: obj.emoji || obj.type || "target",
+        risk: Math.max(0, Math.min(100, Math.round((1 - gap / threshold) * 100)))
+      };
+    }
+  }
+
+  for (const ufo of Array.isArray(state.ufos) ? state.ufos : []) {
+    if (!ufo || ufo.destroyed || ufo.frozen) continue;
+    const remaining = ufo.escaping ? 0 : Math.max(0, (ufo.roamTime || 0) - (ufo.age || 0));
+    const risk = ufo.escaping ? 100 : remaining <= 1.15 ? Math.round((1.15 - remaining) / 1.15 * 100) : 0;
+    if (risk >= 82 && best.gap > threshold) {
+      best = {
+        gap: 0,
+        threshold,
+        kind: "UFO escape",
+        risk
+      };
+    }
+  }
+
+  if (best.gap === 999999) best.gap = 999999;
+  return best;
+}
+
+function savedThreatWasDangerous(payload) {
+  if (!payload || payload.nextReady) return false;
+  const gap = Number(payload.lastThreatGap);
+  const threshold = Number(payload.lastThreatThreshold || 0);
+  if (!Number.isFinite(gap) || !Number.isFinite(threshold) || threshold <= 0) return false;
+  return gap <= threshold;
+}
+
+function savedThreatLabel(payload) {
+  if (!payload || !Number.isFinite(Number(payload.lastThreatGap)) || Number(payload.lastThreatGap) >= 999999) return "No falling target near the ground.";
+  const kind = payload.lastThreatKind && payload.lastThreatKind !== "none" ? payload.lastThreatKind : "target";
+  const gap = Math.max(0, Number(payload.lastThreatGap));
+  return `${kind} was about ${Math.round(gap)}px from the ground when last saved.`;
+}
+
+function buildSavePayload() {
+  if (!state.runId) state.runId = makeRunId();
+  const level = clampInt(state.level, 1, 999999, 1);
+  const threat = activeSaveThreatSnapshot();
+  return normalizeSavePayload({
+    v: SAVE_VERSION,
+    game: "meat-eor-blaster",
+    runId: state.runId,
+    savedAt: Date.now(),
+    level,
+    difficultyLevel: expectedDifficultyForLevel(level),
+    cycle: expectedCycleForLevel(level),
+    hardMode: !!state.hardMode,
+    playerName: state.playerName || "Player",
+    liteMode: !!state.liteMode,
+    activePlayMs: state.activePlayMs || 0,
+    lives: state.lives,
+    coins: state.coins,
+    score: state.score,
+    nextReady: !!state.nextReady,
+    ufoIntroSeen: !!state.ufoIntroSeen,
+    ufoCaught: state.ufoCaught || 0,
+    ufoLivesGained: state.ufoLivesGained || 0,
+    stats: state.stats || {},
+    missedTargets: state.missedTargets || 0,
+    missedUfos: state.missedUfos || 0,
+    saveContinueCount: state.saveContinueCount || 0,
+    dangerContinueCount: state.dangerContinueCount || 0,
+    lastDangerContinueGap: state.lastDangerContinueGap || 0,
+    lastDangerContinueKind: state.lastDangerContinueKind || "",
+    lastThreatGap: threat.gap,
+    lastThreatThreshold: threat.threshold,
+    lastThreatKind: threat.kind,
+    lastThreatRisk: threat.risk,
+    upgrades: state.upgrades || {},
+    ownedEffects: state.ownedEffects || ["starter"],
+    selectedEffect: state.selectedEffect || "starter",
+    ownedTrails: state.ownedTrails || ["tiny"],
+    selectedTrail: state.selectedTrail || "tiny"
+  });
+}
+
+function makeSaveEnvelope(payload) {
+  const sig = signSavePayload(payload);
+  return {
+    payload,
+    sig,
+    guard: tamperHash(sig + "|" + payload.runId + "|" + payload.savedAt + "|" + SAVE_SALT, 0x524549)
+  };
+}
+
+function validateSaveEnvelope(envelope) {
+  if (!envelope || typeof envelope !== "object") throw new Error("Missing save envelope.");
+  const payload = normalizeSavePayload(envelope.payload);
+  const sig = signSavePayload(payload);
+  const guard = tamperHash(sig + "|" + payload.runId + "|" + payload.savedAt + "|" + SAVE_SALT, 0x524549);
+  if (sig !== envelope.sig || guard !== envelope.guard) throw new Error("Save signature check failed.");
+  return payload;
+}
+
+function readSaveFromKey(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+    return validateSaveEnvelope(JSON.parse(raw));
+  } catch (err) {
+    lastSaveProblem = err && err.message ? err.message : "Save could not be read.";
+    return { invalid: true };
+  }
+}
+
+function readSavedCheckpoint() {
+  let foundInvalid = false;
+  const candidates = [readSaveFromKey(SAVE_KEY), readSaveFromKey(SAVE_MIRROR_KEY)].filter(Boolean);
+  const valid = [];
+
+  for (const item of candidates) {
+    if (item.invalid) foundInvalid = true;
+    else valid.push(item);
+  }
+
+  if (!valid.length) return { payload: null, invalid: foundInvalid };
+  valid.sort((a, b) => (b.savedAt || 0) - (a.savedAt || 0));
+  return { payload: valid[0], invalid: foundInvalid };
+}
+
+function saveCheckpoint(reason = "auto") {
+  if (!state.running || state.gameOverShown) return false;
+  try {
+    const payload = buildSavePayload();
+    const envelope = makeSaveEnvelope(payload);
+    const serialized = JSON.stringify(envelope);
+    localStorage.setItem(SAVE_KEY, serialized);
+    localStorage.setItem(SAVE_MIRROR_KEY, serialized);
+    lastSaveProblem = "";
+    return true;
+  } catch (err) {
+    lastSaveProblem = err && err.message ? err.message : "Save failed.";
+    return false;
+  }
+}
+
+function autoSaveCheckpoint(reason = "auto") {
+  if (!state.running || state.gameOverShown) return false;
+  return saveCheckpoint(reason);
+}
+
+function periodicAutoSave(now = performance.now()) {
+  if (!state.running || state.gameOverShown) return;
+  if (now - lastPeriodicSaveAt < 6000) return;
+  lastPeriodicSaveAt = now;
+  saveCheckpoint("periodic");
+}
+
+function clearSavedCheckpoint() {
+  try {
+    localStorage.removeItem(SAVE_KEY);
+    localStorage.removeItem(SAVE_MIRROR_KEY);
+  } catch (err) {}
+}
+
+function savedRunSummary(payload) {
+  if (!payload) return "";
+  const mode = payload.hardMode ? "Hard" : "Normal";
+  const status = payload.nextReady ? "level cleared" : "level start";
+  const continues = payload.saveContinueCount ? ` · ${formatCompactNumber(payload.saveContinueCount)} continue${payload.saveContinueCount === 1 ? "" : "s"}` : "";
+  const danger = payload.dangerContinueCount ? ` · ⚠️ ${formatCompactNumber(payload.dangerContinueCount)} danger` : "";
+  return `${mode} Mode · Level ${formatCompactNumber(payload.level)} · Run ${formatCompactNumber(payload.cycle)} · ${formatCompactNumber(payload.coins)} credits · ${formatCompactNumber(payload.score)} score · ${status}${continues}${danger}`;
+}
+
+function titleScreenHtml() {
+  const saved = readSavedCheckpoint();
+  const saveHtml = saved.payload ? `
+        <p><strong>Saved run found:</strong><br>${savedRunSummary(saved.payload)}</p>
+        <p style="font-size:12px;color:var(--muted);margin-top:-2px;">Continue restarts cleanly without live falling objects. Missed targets and missed UFOs already recorded do not roll back.</p>
+        ${savedThreatWasDangerous(saved.payload) ? `<p style="font-size:12px;color:#ffb23a;margin-top:-4px;">⚠️ Danger continue will be recorded: ${savedThreatLabel(saved.payload)}</p>` : ""}
+        <button onclick="continueSavedGame()">Continue Saved Run</button>
+        <button onclick="clearSaveAndRenderTitle()">Delete Save</button>
+      ` : saved.invalid ? `
+        <p><strong>Saved run blocked:</strong><br>The local save failed its integrity check and was ignored.</p>
+        <button onclick="clearSaveAndRenderTitle()">Clear Bad Save</button>
+      ` : "";
+
+  return `
+    <div class="card">
+      <h1>🥩 Meat-eor Blaster</h1>
+      <p>
+        Tap meat-eors and meteors before they land. Choose Normal or Hard Mode at the start.
+        Bonus UFOs appear after half of some levels. The UFO is piloted by <strong>Zaqxen Rei</strong>,
+        so it flies awkwardly, unstable, and random.
+      </p>
+      <div class="button-row">
+        ${saveHtml}
+        <button onclick="startGame(false)">Normal Mode</button>
+        <button onclick="startGame(true)">Hard Mode</button>
+        <button onclick="showHelp()">Help & Instructions</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderTitleScreen() {
+  overlay.style.background = "rgba(0,0,0,.58)";
+  overlay.style.display = "grid";
+  overlay.innerHTML = titleScreenHtml();
+}
+
+window.clearSaveAndRenderTitle = function() {
+  clearSavedCheckpoint();
+  renderTitleScreen();
+  showMessage("Saved run deleted.");
+};
+
+window.continueSavedGame = function() {
+  const saved = readSavedCheckpoint();
+  if (!saved.payload) {
+    renderTitleScreen();
+    showMessage(saved.invalid ? "Save blocked: integrity check failed." : "No saved run found.");
+    return;
+  }
+
+  const payload = saved.payload;
+  const dangerContinue = savedThreatWasDangerous(payload);
+  const continuedCount = (payload.saveContinueCount || 0) + 1;
+  const dangerCount = (payload.dangerContinueCount || 0) + (dangerContinue ? 1 : 0);
+  clearField();
+  stopGameOverFireworks();
+  document.body.classList.toggle("hard-mode", !!payload.hardMode);
+
+  Object.assign(state, {
+    running: true,
+    paused: !!payload.nextReady,
+    level: payload.level,
+    difficultyLevel: payload.difficultyLevel,
+    cycle: payload.cycle,
+    hardMode: !!payload.hardMode,
+    playerName: payload.playerName || "Player",
+    liteMode: !!payload.liteMode,
+    runId: payload.runId || makeRunId(),
+    saveContinueCount: continuedCount,
+    dangerContinueCount: dangerCount,
+    lastDangerContinueGap: dangerContinue ? Math.max(0, payload.lastThreatGap || 0) : (payload.lastDangerContinueGap || 0),
+    lastDangerContinueKind: dangerContinue ? (payload.lastThreatKind || "target") : (payload.lastDangerContinueKind || ""),
+    activePlayMs: payload.activePlayMs || 0,
+    activeTimerLast: 0,
+    lives: payload.lives,
+    coins: payload.coins,
+    score: payload.score,
+    spawned: 0,
+    cleared: payload.nextReady ? waveTotalForLevel(payload.level) : 0,
+    total: waveTotalForLevel(payload.level),
+    objects: [],
+    rockets: [],
+    ufos: [],
+    lastTime: performance.now(),
+    spawnTimer: payload.nextReady ? 0 : spawnInterval(),
+    levelElapsed: 0,
+    completionGrace: 0,
+    bombsSpawned: 0,
+    bombQuota: bombQuotaForLevel(),
+    nextReady: !!payload.nextReady,
+    levelCompleteShown: !!payload.nextReady,
+    completingLevel: !!payload.nextReady,
+    gameOverShown: false,
+    ignoreViewportPauseUntil: performance.now() + 900,
+    ufoSpawnedThisLevel: false,
+    ufoIntroSeen: !!payload.ufoIntroSeen,
+    ufoIntroPending: false,
+    ufoCaught: payload.ufoCaught || 0,
+    ufoLivesGained: payload.ufoLivesGained || 0,
+    bombImmunity: 0,
+    bombImmunitySpentCredits: 0,
+    stats: { ...payload.stats },
+    missedTargets: payload.missedTargets || 0,
+    missedUfos: payload.missedUfos || 0,
+    upgrades: { ...payload.upgrades },
+    ownedEffects: [...payload.ownedEffects],
+    selectedEffect: payload.selectedEffect,
+    ownedTrails: [...payload.ownedTrails],
+    selectedTrail: payload.selectedTrail
+  });
+
+  prepareUfoForLevel();
+  setNextButtonVisible(false);
+  setPauseButtonNormal();
+  overlay.style.background = "rgba(0,0,0,.58)";
+  updateUI();
+  saveCheckpoint("load");
+
+  if (payload.nextReady) {
+    showLevelComplete();
+  } else {
+    overlay.style.display = "none";
+    state.paused = false;
+    state.lastTime = performance.now();
+    resetActiveTimer();
+    showMessage(dangerContinue ? "Saved run loaded. Danger continue recorded." : "Saved run loaded. Restarting Level " + state.level + ".");
+  }
+
+  requestAnimationFrame(loop);
+};
+
 function updateUI() {
   state.bombImmunity = bombImmunityCount();
-  ui.level.textContent = state.level;
-  ui.cycle.textContent = state.cycle;
-  ui.lives.textContent = state.lives;
-  ui.coins.textContent = state.coins;
-  ui.cleared.textContent = state.cleared;
-  ui.total.textContent = state.total;
+  ui.level.textContent = formatCompactNumber(state.level);
+  ui.cycle.textContent = formatCompactNumber(state.cycle);
+  ui.lives.textContent = formatCompactNumber(state.lives);
+  ui.coins.textContent = formatCompactNumber(state.coins);
+  ui.cleared.textContent = formatCompactNumber(state.cleared);
+  ui.total.textContent = formatCompactNumber(state.total);
   updateGroundVisual();
+  autoSaveCheckpoint("ui");
 }
 
 function lerpColor(a, b, t) {
@@ -2009,9 +2638,9 @@ function currentTrail() {
 function initStarfield() {
   const field = document.getElementById("starfield");
   field.innerHTML = "";
-  const area = Math.max(window.innerWidth * window.innerHeight, 1);
+  const area = Math.max(viewportWidth() * viewportHeight(), 1);
   const count = Math.min(170, Math.max(75, Math.floor(area / 6000)));
-  const cols = Math.ceil(Math.sqrt(count * window.innerWidth / Math.max(window.innerHeight, 1)));
+  const cols = Math.ceil(Math.sqrt(count * viewportWidth() / Math.max(viewportHeight(), 1)));
   const rows = Math.ceil(count / cols);
 
   for (let i = 0; i < count; i++) {
@@ -2050,7 +2679,7 @@ function desiredFallTime() {
 }
 
 function levelSpeed() {
-  const fallDistance = Math.max(280, window.innerHeight - ground.offsetHeight + 80);
+  const fallDistance = Math.max(280, viewportHeight() - ground.offsetHeight + 80);
   return fallDistance / desiredFallTime();
 }
 
@@ -2127,9 +2756,11 @@ window.showHelp = function(source = "title") {
         <div><strong>🛡️ Bomb Immunity</strong><br>Every 1000 current available credits gives 1 bomb immunity. If you spend credits, available immunity can go down. If you tap a bomb by accident, immunity saves you, but costs 1000 credits and lowers Rocket Size and Multi-Missile by 1.</div>
         <div><strong>🔥 Hard Mode</strong><br>Selectable only at the beginning. Red theme, faster falling objects, more targets, and more bombs from level 1.</div>
         <div><strong>🛸 UFO Bonus</strong><br>Appears randomly after half of some levels. Tap to break shields. Capturing it gives a big credit reward and extra lives.</div>
+        <div><strong>🔢 Compact Numbers</strong><br>HUD and final result numbers shorten after 1000, for example 1000 becomes 1.0K and 1000000 becomes 1.0M. Open the Shop to see the exact current credit total.</div>
         <div><strong>🔪🔨🔧 UFO Droppings from Level 30</strong><br>Starting at level 30, UFOs can randomly drop knives, hammers, and wrenches while flying. These tool drops cannot be destroyed. If they hit the ground, you lose 1 life.</div>
         <div><strong>🎰 Slot Machine Drop</strong><br>Near the end of a level-30+ UFO visit, a slot machine can drop. If it reaches the ground, it steals a random 100-1000 credits. Finish the level before UFO droppings land to clear them safely.</div>
         <div><strong>❌ Miss Tap Marker</strong><br>If you tap empty space instead of a meat-eor, meteor, bomb, or UFO, a tiny red crosshair appears exactly where you tapped to show the missed click.</div>
+        <div><strong>💾 Local Save</strong><br>The browser saves your checkpoint locally. Continue starts cleanly without live falling objects. Credits, score, lives, upgrades, missed targets, and missed UFOs already recorded are kept and do not roll back. Edited saves are blocked by an integrity check. The final result also shows how many times a saved run was continued, including danger continues when the last saved falling target was close to the ground.</div>
         <div><strong>Multi-Missile Tap</strong><br>For meteors: lets you tap the same locked target multiple times, launching more rockets. For UFOs: each tap removes shields equal to your Multi-Missile level. Mobile multi-touch is allowed, so be careful near bombs.</div>
         <div><strong>Starter Explosion</strong><br>Your starter pack includes a white expanding circle so you can see the current blast radius.</div>
         <div><strong>Rocket Size</strong><br>Increases blast radius and unlocks grander explosion effects.</div>
@@ -2143,23 +2774,7 @@ window.showHelp = function(source = "title") {
 };
 
 window.backToTitle = function() {
-  overlay.style.background = "rgba(0,0,0,.58)";
-  overlay.style.display = "grid";
-  overlay.innerHTML = `
-    <div class="card">
-      <h1>🥩 Meat-eor Blaster</h1>
-      <p>
-        Tap meat-eors and meteors before they land. Do not tap bombs after the difficulty resets.
-        Bonus UFOs appear after half of some levels. The UFO is piloted by <strong>Zaqxen Rei</strong>,
-        so it flies awkwardly, unstable, and random.
-      </p>
-      <div class="button-row">
-        <button onclick="startGame(false)">Normal Mode</button>
-        <button onclick="startGame(true)">Hard Mode</button>
-        <button onclick="showHelp()">Help & Instructions</button>
-      </div>
-    </div>
-  `;
+  renderTitleScreen();
 };
 
 function startGame(hardMode = false) {
@@ -2176,6 +2791,11 @@ function startGame(hardMode = false) {
     hardMode: !!hardMode,
     playerName: "Player",
     liteMode: false,
+    runId: makeRunId(),
+    saveContinueCount: 0,
+    dangerContinueCount: 0,
+    lastDangerContinueGap: 0,
+    lastDangerContinueKind: "",
     activePlayMs: 0,
     activeTimerLast: 0,
     lives: 5,
@@ -2197,6 +2817,7 @@ function startGame(hardMode = false) {
     levelCompleteShown: false,
     completingLevel: false,
     gameOverShown: false,
+    ignoreViewportPauseUntil: performance.now() + 900,
     ufoSpawnedThisLevel: false,
     ufoIntroSeen: false,
     ufoIntroPending: false,
@@ -2230,7 +2851,7 @@ function startLevel() {
     objects: [],
     rockets: [],
     ufos: [],
-    spawnTimer: 0,
+    spawnTimer: spawnInterval(),
     levelElapsed: 0,
     completionGrace: 0,
     bombsSpawned: 0,
@@ -2238,6 +2859,7 @@ function startLevel() {
     nextReady: false,
     levelCompleteShown: false,
     completingLevel: false,
+    ignoreViewportPauseUntil: performance.now() + 900,
     ufoSpawnedThisLevel: false
   });
 
@@ -2304,8 +2926,8 @@ function spawnObject() {
   const emoji = isBomb ? "💣" : isMeat ? meats[Math.floor(Math.random() * meats.length)] : "☄️";
   el.textContent = emoji;
 
-  const size = Math.min(Math.max(window.innerWidth * 0.11, 42), 54);
-  const x = Math.random() * Math.max(1, window.innerWidth - size - 18) + 9;
+  const size = Math.min(Math.max(viewportWidth() * 0.11, 42), 54);
+  const x = Math.random() * Math.max(1, viewportWidth() - size - 18) + 9;
   const y = -70;
 
   el.style.left = x + "px";
@@ -2386,8 +3008,8 @@ function launchRocket(target, tx, ty, isSpecialUfo = false) {
   rocket.className = "rocket";
   rocket.innerHTML = `<span class="body">🚀</span>`;
 
-  const startX = window.innerWidth / 2;
-  const startY = window.innerHeight - 74;
+  const startX = viewportWidth() / 2;
+  const startY = viewportHeight() - 74;
 
   rocket.style.left = startX + "px";
   rocket.style.top = startY + "px";
@@ -2447,7 +3069,7 @@ function createRocketTrailParticle(x, y, backX = 0, backY = 1, core = false) {
 }
 
 function updateObjects(dt) {
-  const groundTop = window.innerHeight - ground.offsetHeight;
+  const groundTop = viewportHeight() - ground.offsetHeight;
 
   state.objects = state.objects.filter(obj => {
     if (!obj.frozen) {
@@ -2649,7 +3271,7 @@ function createMeatExplosion(x, y) {
     very large, readable meats thrown across the screen.
     Fewer nodes, no tiny meat crumbs, reliable on mobile.
   */
-  const isMobile = window.matchMedia("(pointer: coarse)").matches || window.innerWidth <= 600;
+  const isMobile = window.matchMedia("(pointer: coarse)").matches || viewportWidth() <= 600;
   const style = document.createElement("style");
   style.textContent = `
     @keyframes meatBurst {
@@ -2692,7 +3314,7 @@ function createMeatExplosion(x, y) {
 
   const meats = ["🥩", "🍗", "🍖", "🥓", "🍔", "🌭"];
   const particleCount = isMobile ? 14 : 22;
-  const maxDistance = Math.max(window.innerWidth, window.innerHeight) * (isMobile ? 0.72 : 0.84);
+  const maxDistance = Math.max(viewportWidth(), viewportHeight()) * (isMobile ? 0.72 : 0.84);
 
   for (let i = 0; i < particleCount; i++) {
     const p = document.createElement("div");
@@ -2786,12 +3408,12 @@ function updateUfoDrops(dt) {
     drop.el.style.left = drop.x + "px";
     drop.el.style.top = drop.y + "px";
 
-    if (drop.y > window.innerHeight - ground.offsetHeight - 14) {
+    if (drop.y > viewportHeight() - ground.offsetHeight - 14) {
       if (!drop.counted) {
         drop.counted = true;
         if (drop.type === "slot") {
           state.coins -= drop.cost;
-          showMessage("🎰 Slot machine took " + drop.cost + " credits!");
+          showMessage("🎰 Slot machine took " + formatCompactNumber(drop.cost) + " credits!");
         } else {
           state.lives--;
           document.body.classList.add("damage-flash");
@@ -2852,7 +3474,7 @@ function showUfoIntro() {
         When the shield breaks, the game pauses and a special rocket destroys it with a heavy meat explosion.
       </p>
       <p>
-        Reward this time: <strong>${reward} credits</strong> plus <strong>${ufoLifeReward()} extra life/lives</strong>. Current UFO speed rating:
+        Reward this time: <strong>${formatCompactNumber(reward)} credits</strong> plus <strong>${formatCompactNumber(ufoLifeReward())} extra life/lives</strong>. Current UFO speed rating:
         <strong>${Math.round(speed)}</strong>.
       </p>
       <p>
@@ -2901,10 +3523,10 @@ function spawnUfo() {
   const shields = ufoShieldCount();
   el.innerHTML = `🛸<div class="shield">${shields}</div>`;
 
-  const safeTop = Math.max(82, window.innerHeight * 0.14);
-  const safeBottom = Math.max(safeTop + 40, Math.min(window.innerHeight - ground.offsetHeight - 95, window.innerHeight * 0.68));
+  const safeTop = Math.max(82, viewportHeight() * 0.14);
+  const safeBottom = Math.max(safeTop + 40, Math.min(viewportHeight() - ground.offsetHeight - 95, viewportHeight() * 0.68));
   const safeLeft = 24;
-  const safeRight = Math.max(safeLeft + 120, window.innerWidth - 120);
+  const safeRight = Math.max(safeLeft + 120, viewportWidth() - 120);
   const x = safeLeft + Math.random() * Math.max(1, safeRight - safeLeft);
   const y = safeTop + Math.random() * Math.max(1, safeBottom - safeTop);
   const angle = Math.random() * Math.PI * 2;
@@ -3034,7 +3656,7 @@ function updateUfos(dt) {
     if (!ufo.escaping && ufo.age >= ufo.roamTime) {
       ufo.escaping = true;
       ufo.age = 0;
-      const exit = Math.random() < 0.5 ? -180 : window.innerWidth + 180;
+      const exit = Math.random() < 0.5 ? -180 : viewportWidth() + 180;
       const dx = exit - ufo.x;
       const dy = (ufo.y + (Math.random() - 0.5) * 120) - ufo.y;
       const dist = Math.hypot(dx, dy) || 1;
@@ -3068,6 +3690,7 @@ function updateUfos(dt) {
 
     if (ufo.escaping && ufo.age > ufo.escapeTime) {
       state.missedUfos++;
+      saveCheckpoint("missed-ufo");
       ufo.el.remove();
       return false;
     }
@@ -3133,9 +3756,9 @@ function specialUfoExplosion(x, y, ufo) {
           Congratulations! Zaqxen Rei's UFO exploded into a giant meat firework show.
         </p>
         <p>
-          Bonus credits gained: <strong>${reward}</strong><br>
-          Extra lives gained: <strong>${extraLives}</strong><br>
-          Total credits now: <strong>${state.coins}</strong>
+          Bonus credits gained: <strong>${formatCompactNumber(reward)}</strong><br>
+          Extra lives gained: <strong>${formatCompactNumber(extraLives)}</strong><br>
+          Total credits now: <strong>${formatCompactNumber(state.coins)}</strong>
         </p>
         <p>
           The bonus reward is complete. Press Continue to un-pause and return to the level.
@@ -3145,7 +3768,7 @@ function specialUfoExplosion(x, y, ufo) {
         </div>
       </div>
     `;
-  }, (window.matchMedia("(pointer: coarse)").matches || window.innerWidth <= 600) ? 1850 : 2250);
+  }, (window.matchMedia("(pointer: coarse)").matches || viewportWidth() <= 600) ? 1850 : 2250);
 }
 
 window.continueAfterUfo = function() {
@@ -3189,6 +3812,7 @@ function setNextLevelReady(reason = "Level complete!") {
   if (!state.running || state.nextReady) return;
   state.nextReady = true;
   state.completingLevel = true;
+  state.ignoreViewportPauseUntil = performance.now() + 900;
   state.paused = true;
   setNextButtonVisible(true);
   setPauseButtonNormal();
@@ -3291,13 +3915,15 @@ function bestAffordableShopNotice() {
   candidates.sort((a, b) => b.priority - a.priority);
   const best = candidates[0];
 
-  return `<p><strong>Top affordable item:</strong><br>${best.type}: ${best.name} — ${best.cost} credits</p>`;
+  return `<p><strong>Top affordable item:</strong><br>${best.type}: ${best.name} — ${formatCompactNumber(best.cost)} credits</p>`;
 }
 
 
 function showLevelComplete() {
   state.nextReady = true;
   state.levelCompleteShown = true;
+  state.paused = true;
+  saveCheckpoint("level-complete");
   setNextButtonVisible(true);
   const atMax = state.difficultyLevel >= MAX_LEVEL;
   const next = atMax ? state.level + 1 : state.level + 1;
@@ -3315,7 +3941,7 @@ function showLevelComplete() {
   overlay.innerHTML = `
     <div class="card">
       <h1>Level ${state.level} Cleared!</h1>
-      <p>You have <strong>${state.coins}</strong> credits.</p>
+      <p>You have <strong>${formatCompactNumber(state.coins)}</strong> credits.</p>
       ${unlockText}
       ${premiumNotice}
       ${affordAnything ? `<p>Visit the shop before continuing?</p>` : `<p><strong>Not enough credits to buy anything yet.</strong></p>`}
@@ -3329,6 +3955,8 @@ function showLevelComplete() {
 
 window.advanceAfterLevel = function() {
   if (!state.running) return;
+  if (resizeTimer) clearTimeout(resizeTimer);
+  state.ignoreViewportPauseUntil = performance.now() + 1200;
 
   state.level++;
   if (state.difficultyLevel >= MAX_LEVEL) {
@@ -3338,6 +3966,8 @@ window.advanceAfterLevel = function() {
   } else {
     state.difficultyLevel++;
   }
+
+  saveCheckpoint("advance-level");
 
   if (state.level % 100 === 0) {
     showHundredLevelMilestone();
@@ -3375,6 +4005,8 @@ window.continueAfterMilestone = function() {
   overlay.style.display = "none";
   state.paused = false;
   setPauseButtonNormal();
+  if (resizeTimer) clearTimeout(resizeTimer);
+  state.ignoreViewportPauseUntil = performance.now() + 1200;
   startLevel();
 };
 
@@ -3553,17 +4185,18 @@ function openShop(fromLevelEnd = false, scrollTop = 0) {
     const maxed = lvl >= item.max;
     const levelOk = state.level >= item.unlockLevel;
     const canBuy = levelOk && !maxed && state.coins >= cost;
-    const status = maxed ? "Maxed" : !levelOk ? "Unlocks at level " + item.unlockLevel : canBuy ? "Available" : "Need " + cost + " credits";
+    const costText = formatExactNumber(cost);
+    const status = maxed ? "Maxed" : !levelOk ? "Unlocks at level " + item.unlockLevel : canBuy ? "Available" : "Need " + costText + " credits";
 
     return `
       <div class="shop-item ${canBuy ? "" : "locked"}">
         <div>
           <strong>${item.name}</strong>
           <div>${item.desc}</div>
-          <small>Level ${lvl}/${item.max} · ${status}${!maxed && levelOk ? " · Cost " + cost : ""}</small>
+          <small>Level ${lvl}/${item.max} · ${status}${!maxed && levelOk ? " · Cost " + costText : ""}</small>
         </div>
         <button ${canBuy ? "" : "disabled"} onclick="buyUpgrade('${item.key}', ${fromLevelEnd})">
-          ${maxed ? "Maxed" : !levelOk ? "Locked" : canBuy ? "Buy" : "Need " + cost}
+          ${maxed ? "Maxed" : !levelOk ? "Locked" : canBuy ? "Buy" : "Need " + costText}
         </button>
       </div>
     `;
@@ -3576,14 +4209,14 @@ function openShop(fromLevelEnd = false, scrollTop = 0) {
     const sizeOk = state.upgrades.rocketSize >= effect.minRocketSize;
     const maxOk = !effect.requiresMaxRocket || state.upgrades.rocketSize >= MAX_ROCKET_SIZE;
     const canBuy = canBuyEffect(effect);
-    let status = owned ? "Purchased" : !levelOk ? "Locked by level" : !sizeOk ? "Needs Rocket Size " + effect.minRocketSize : !maxOk ? "Needs max Rocket Size" : state.coins < effect.cost ? "Need " + effect.cost + " credits" : "Unlocked";
+    let status = owned ? "Purchased" : !levelOk ? "Locked by level" : !sizeOk ? "Needs Rocket Size " + effect.minRocketSize : !maxOk ? "Needs max Rocket Size" : state.coins < effect.cost ? "Need " + formatExactNumber(effect.cost) + " credits" : "Unlocked";
 
     return `
       <div class="shop-item ${selected ? "selected" : ""} ${owned || canBuy ? "" : "locked"}">
         <div>
           <strong>${effect.name}</strong>
           <div>${effect.description}</div>
-          <small>${owned ? "Ready to equip" : `${status} · Unlock level ${effect.unlockLevel} · Rocket Size ${effect.minRocketSize}+ · Cost ${effect.cost}`}</small>
+          <small>${owned ? "Ready to equip" : `${status} · Unlock level ${effect.unlockLevel} · Rocket Size ${effect.minRocketSize}+ · Cost ${formatExactNumber(effect.cost)}`}</small>
           ${explosionPreviewHtml(effect)}
         </div>
         <button ${owned || canBuy ? "" : "disabled"} onclick="${owned ? `selectEffect('${effect.id}', ${fromLevelEnd})` : `buyEffect('${effect.id}', ${fromLevelEnd})`}">
@@ -3599,14 +4232,14 @@ function openShop(fromLevelEnd = false, scrollTop = 0) {
     const levelOk = state.level >= trail.unlockLevel;
     const lengthOk = state.upgrades.trailLength >= trail.minTrailLength;
     const canBuy = canBuyTrail(trail);
-    let status = owned ? "Purchased" : !levelOk ? "Unlocks at level " + trail.unlockLevel : !lengthOk ? "Needs Trail Length " + trail.minTrailLength : state.coins < trail.cost ? "Need " + trail.cost + " credits" : "Unlocked";
+    let status = owned ? "Purchased" : !levelOk ? "Unlocks at level " + trail.unlockLevel : !lengthOk ? "Needs Trail Length " + trail.minTrailLength : state.coins < trail.cost ? "Need " + formatExactNumber(trail.cost) + " credits" : "Unlocked";
 
     return `
       <div class="shop-item ${selected ? "selected" : ""} ${owned || canBuy ? "" : "locked"}">
         <div>
           <strong>${trail.name}</strong>
           <div>${trail.description}</div>
-          <small>${owned ? "Ready to equip" : `${status} · Unlock level ${trail.unlockLevel} · Trail Length ${trail.minTrailLength}+ · Cost ${trail.cost}`}</small>
+          <small>${owned ? "Ready to equip" : `${status} · Unlock level ${trail.unlockLevel} · Trail Length ${trail.minTrailLength}+ · Cost ${formatExactNumber(trail.cost)}`}</small>
           ${trailPreviewHtml(trail)}
         </div>
         <button ${owned || canBuy ? "" : "disabled"} onclick="${owned ? `selectTrail('${trail.id}', ${fromLevelEnd})` : `buyTrail('${trail.id}', ${fromLevelEnd})`}">
@@ -3622,7 +4255,7 @@ function openShop(fromLevelEnd = false, scrollTop = 0) {
     <div class="card shop-card">
       <div class="shop-bar">
         <h1>Rocket Workshop</h1>
-        <div class="shop-credit">🪙 ${state.coins} Credits</div>
+        <div class="shop-credit">🪙 ${formatExactNumber(state.coins)} Credits</div>
         <div class="button-row">
           ${fromLevelEnd ? `<button onclick="advanceAfterLevel()">Next Level</button>` : ""}
           <button onclick="closeShop()">${state.running ? "Back" : "Back"}</button>
@@ -3653,6 +4286,7 @@ function openShop(fromLevelEnd = false, scrollTop = 0) {
 
 window.toggleLiteModeFromShop = function(fromLevelEnd = false) {
   state.liteMode = !state.liteMode;
+  saveCheckpoint("lite-mode");
   showMessage(state.liteMode ? "Lite Mode on: simpler effects" : "Lite Mode off: full effects");
   openShop(fromLevelEnd, currentShopScroll());
 };
@@ -3667,21 +4301,7 @@ window.closeShop = function() {
     return;
   }
   if (!state.running) {
-    overlay.style.display = "grid";
-    overlay.innerHTML = `
-      <div class="card">
-        <h1>🥩 Meat-eor Blaster</h1>
-        <p>
-          Tap meat-eors and meteors before they land. The UFO is piloted by <strong>Zaqxen Rei</strong>,
-          so it flies awkwardly, unstable, and random. This game is dedicated to him.
-        </p>
-        <div class="button-row">
-          <button onclick="startGame(false)">Normal Mode</button>
-          <button onclick="startGame(true)">Hard Mode</button>
-          <button onclick="showHelp()">Help & Instructions</button>
-        </div>
-      </div>
-    `;
+    renderTitleScreen();
     return;
   }
   overlay.style.display = "none";
@@ -3741,6 +4361,7 @@ window.buyEffect = function(id, fromLevelEnd = false) {
 window.selectEffect = function(id, fromLevelEnd = false) {
   if (!state.ownedEffects.includes(id)) return;
   state.selectedEffect = id;
+  saveCheckpoint("select-effect");
   openShop(fromLevelEnd, currentShopScroll());
 };
 
@@ -3764,6 +4385,7 @@ window.buyTrail = function(id, fromLevelEnd = false) {
 window.selectTrail = function(id, fromLevelEnd = false) {
   if (!state.ownedTrails.includes(id)) return;
   state.selectedTrail = id;
+  saveCheckpoint("select-trail");
   openShop(fromLevelEnd, currentShopScroll());
 };
 
@@ -3831,10 +4453,11 @@ function scoreRank(score, hardMode) {
   */
   const modeBonus = hardMode ? 1.18 : 1;
   const missPenalty = Math.max(0.35, 1 - (state.missedTargets || 0) * 0.035 - (state.missedUfos || 0) * 0.08);
-  const adjusted = score * modeBonus * missPenalty;
+  const restorePenalty = Math.max(0.5, 1 - (state.saveContinueCount || 0) * 0.012 - (state.dangerContinueCount || 0) * 0.075);
+  const adjusted = score * modeBonus * missPenalty * restorePenalty;
 
-  if (adjusted >= 90000 && (state.missedTargets || 0) === 0 && (state.missedUfos || 0) === 0) return "S+";
-  if (adjusted >= 60000 && (state.missedTargets || 0) <= 1 && (state.missedUfos || 0) === 0) return "S";
+  if (adjusted >= 90000 && (state.missedTargets || 0) === 0 && (state.missedUfos || 0) === 0 && (state.dangerContinueCount || 0) === 0) return "S+";
+  if (adjusted >= 60000 && (state.missedTargets || 0) <= 1 && (state.missedUfos || 0) === 0 && (state.dangerContinueCount || 0) <= 1) return "S";
   if (adjusted >= 35000) return "A";
   if (adjusted >= 18000) return "B";
   if (adjusted >= 8000) return "C";
@@ -3847,6 +4470,7 @@ function gameOver() {
   state.gameOverShown = true;
   state.running = false;
   state.paused = true;
+  clearSavedCheckpoint();
   setPauseButtonNormal();
   setNextButtonVisible(false);
   startGameOverFireworks();
@@ -3892,6 +4516,10 @@ function renderFinalResult() {
   const rank = scoreRank(state.score, state.hardMode);
   const finishedAt = formatShareDate();
   const player = state.playerName || "Player";
+  const continueCount = state.saveContinueCount || 0;
+  const dangerCount = state.dangerContinueCount || 0;
+  const c = formatCompactNumber;
+  const cp = formatCompactPair;
 
   overlay.style.display = "grid";
   overlay.style.background = "rgba(0, 0, 0, .18)";
@@ -3906,37 +4534,41 @@ function renderFinalResult() {
       </div>
 
       <div class="share-score-row">
-        <div class="result-pop" ${delay(3)}><strong>${state.score}</strong>Total Score</div>
+        <div class="result-pop" ${delay(3)}><strong>${c(state.score)}</strong>Total Score</div>
         <div class="result-pop" ${delay(4)}><strong>${rank}</strong>Rank</div>
       </div>
 
       <div class="share-mini-grid">
-        <div class="result-pop" ${delay(5)}><strong>${state.coins}</strong>🪙 Credits</div>
-        <div class="result-pop" ${delay(6)}><strong>${state.level}</strong>⭐ Level</div>
-        <div class="result-pop" ${delay(7)}><strong>${state.cycle}</strong>🔁 Run</div>
-        <div class="result-pop" ${delay(8)}><strong>${state.ufoCaught || 0}/${state.missedUfos || 0}</strong>🛸 UFO +/-</div>
+        <div class="result-pop" ${delay(5)}><strong>${c(state.coins)}</strong>🪙 Credits</div>
+        <div class="result-pop" ${delay(6)}><strong>${c(state.level)}</strong>⭐ Level</div>
+        <div class="result-pop" ${delay(7)}><strong>${c(state.cycle)}</strong>🔁 Run</div>
+        <div class="result-pop" ${delay(8)}><strong>${cp(state.ufoCaught || 0, state.missedUfos || 0)}</strong>🛸 UFO +/-</div>
         <div class="result-pop" ${delay(9)}><strong>${state.upgrades.rocketSize}/${MAX_ROCKET_SIZE}</strong>🚀 Size</div>
         <div class="result-pop" ${delay(10)}><strong>${state.upgrades.missiles}/4</strong>🎯 Multi</div>
         <div class="result-pop" ${delay(11)}><strong>${state.upgrades.trailLength}/7</strong>✨ Trail</div>
-        <div class="result-pop" ${delay(12)}><strong>${bombImmunityCount()}</strong>🛡️ Shield</div>
+        <div class="result-pop" ${delay(12)}><strong>${c(bombImmunityCount())}</strong>🛡️ Shield</div>
       </div>
 
       <div class="share-icons">
-        <div class="result-pop" ${delay(13)}><span>🥩</span>${state.stats?.steak || 0}</div>
-        <div class="result-pop" ${delay(14)}><span>🍗</span>${state.stats?.chicken || 0}</div>
-        <div class="result-pop" ${delay(15)}><span>🍖</span>${state.stats?.rib || 0}</div>
-        <div class="result-pop" ${delay(16)}><span>☄️</span>${state.stats?.meteor || 0}</div>
-        <div class="result-pop" ${delay(17)}><span>🛸</span>${state.ufoCaught || 0}</div>
+        <div class="result-pop" ${delay(13)}><span>🥩</span>${c(state.stats?.steak || 0)}</div>
+        <div class="result-pop" ${delay(14)}><span>🍗</span>${c(state.stats?.chicken || 0)}</div>
+        <div class="result-pop" ${delay(15)}><span>🍖</span>${c(state.stats?.rib || 0)}</div>
+        <div class="result-pop" ${delay(16)}><span>☄️</span>${c(state.stats?.meteor || 0)}</div>
+        <div class="result-pop" ${delay(17)}><span>🛸</span>${c(state.ufoCaught || 0)}</div>
       </div>
 
       <div class="share-mini-grid">
-        <div class="result-pop" ${delay(18)}><strong>${state.ownedEffects.length}</strong>Effects</div>
-        <div class="result-pop" ${delay(19)}><strong>${state.ownedTrails.length}</strong>Trails</div>
-        <div class="result-pop" ${delay(20)}><strong>${state.missedTargets || 0}</strong>Missed</div>
+        <div class="result-pop" ${delay(18)}><strong>${c(state.ownedEffects.length)}</strong>Effects</div>
+        <div class="result-pop" ${delay(19)}><strong>${c(state.ownedTrails.length)}</strong>Trails</div>
+        <div class="result-pop" ${delay(20)}><strong>${c(state.missedTargets || 0)}</strong>Missed</div>
         <div class="result-pop" ${delay(21)}><strong>${formatRunTime(state.activePlayMs)}</strong>Run Time</div>
+        <div class="result-pop" ${delay(22)}><strong>${c(continueCount)}</strong>💾 Continue</div>
+        <div class="result-pop" ${delay(23)}><strong>${c(dangerCount)}</strong>⚠️ Danger</div>
       </div>
 
-      <div class="button-row share-actions result-pop" ${delay(22)}>
+      ${dangerCount ? `<p class="share-subtitle result-pop" ${delay(24)}>Danger continue: ${state.lastDangerContinueKind || "target"} was close to the ground.</p>` : ""}
+
+      <div class="button-row share-actions result-pop" ${delay(25)}>
         <button onclick="location.reload()">Try Again</button>
       </div>
     </div>
@@ -3970,10 +4602,10 @@ function resizeGameOverCanvas() {
   const canvas = document.getElementById("gameOverCanvas");
   if (!canvas) return;
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  canvas.width = Math.floor(window.innerWidth * dpr);
-  canvas.height = Math.floor(window.innerHeight * dpr);
-  canvas.style.width = window.innerWidth + "px";
-  canvas.style.height = window.innerHeight + "px";
+  canvas.width = Math.floor(viewportWidth() * dpr);
+  canvas.height = Math.floor(viewportHeight() * dpr);
+  canvas.style.width = viewportWidth() + "px";
+  canvas.style.height = viewportHeight() + "px";
   canvas.getContext("2d").setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 
@@ -3982,7 +4614,7 @@ function randomFireworkColor() {
 }
 
 function launchGameOverFirework(instant = false) {
-  const w = window.innerWidth, h = window.innerHeight;
+  const w = viewportWidth(), h = viewportHeight();
   const targetX = 60 + Math.random() * Math.max(100, w - 120);
   const targetY = 60 + Math.random() * Math.max(120, h * 0.48);
   const startX = w * (0.2 + Math.random() * 0.6);
@@ -4023,7 +4655,7 @@ function gameOverFireworksLoop(now) {
 
   ctx.globalCompositeOperation = "source-over";
   ctx.fillStyle = "rgba(0,5,9,.18)";
-  ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
+  ctx.fillRect(0, 0, viewportWidth(), viewportHeight());
 
   fw.launchTimer += dt;
   if (fw.launchTimer > .38) {
@@ -4066,8 +4698,8 @@ function gameOverFireworksLoop(now) {
 function updatePointer(x, y) {
   state.pointerX = x;
   state.pointerY = y;
-  const baseX = window.innerWidth / 2;
-  const baseY = window.innerHeight - 74;
+  const baseX = viewportWidth() / 2;
+  const baseY = viewportHeight() - 74;
   const angle = Math.atan2(y - baseY, x - baseX);
   launcher.style.transform = `translateX(-50%) rotate(${angle + Math.PI / 2}rad)`;
 }
@@ -4083,14 +4715,15 @@ function showPauseLegend() {
       <h1>Paused</h1>
       <p>Here is what the top icons mean during gameplay. Tap the small ? button here anytime to reopen the full Help & Instructions.</p>
       <div class="pause-stat-grid">
-        <div><strong>⭐ Level</strong>Current level: ${state.level}</div>
-        <div><strong>🔁 Run</strong>Difficulty cycle: ${state.cycle}</div>
+        <div><strong>⭐ Level</strong>Current level: ${formatCompactNumber(state.level)}</div>
+        <div><strong>🔁 Run</strong>Difficulty cycle: ${formatCompactNumber(state.cycle)}</div>
         <div><strong>🔥 Mode</strong>${state.hardMode ? "Hard Mode" : "Normal Mode"}</div>
-        <div><strong>❤️ Lives</strong>Remaining lives: ${state.lives}</div>
-        <div><strong>🪙 Credits</strong>Available credits: ${state.coins}</div>
-        <div><strong>🎯 Target</strong>Cleared targets: ${state.cleared}/${state.total}</div>
-        <div><strong>🛸 UFO</strong>Captured UFOs: ${state.ufoCaught || 0}</div>
-        <div><strong>🛡️ Bomb Immunity</strong>Available shields: ${bombImmunityCount()}</div>
+        <div><strong>❤️ Lives</strong>Remaining lives: ${formatCompactNumber(state.lives)}</div>
+        <div><strong>🪙 Credits</strong>Available credits: ${formatCompactNumber(state.coins)}</div>
+        <div><strong>🎯 Target</strong>Cleared targets: ${formatCompactPair(state.cleared, state.total)}</div>
+        <div><strong>🛸 UFO</strong>Captured UFOs: ${formatCompactNumber(state.ufoCaught || 0)}</div>
+        <div><strong>🛡️ Bomb Immunity</strong>Available shields: ${formatCompactNumber(bombImmunityCount())}</div>
+        <div><strong>💾 Save</strong>Auto-saved locally. Saved-run continues: ${formatCompactNumber(state.saveContinueCount || 0)}; danger continues: ${formatCompactNumber(state.dangerContinueCount || 0)}. Recorded misses do not roll back.</div>
       </div>
       <div class="button-row">
         <button onclick="resumeFromPauseLegend()">Continue</button>
@@ -4144,7 +4777,65 @@ window.closeDeveloperInfo = function(wasPaused) {
 };
 
 
+function viewportWidth() {
+  const vv = window.visualViewport;
+  return Math.max(240, Math.round((vv && vv.width) || document.documentElement.clientWidth || globalThis.innerWidth || 360));
+}
+
+function viewportHeight() {
+  const vv = window.visualViewport;
+  return Math.max(320, Math.round((vv && vv.height) || document.documentElement.clientHeight || globalThis.innerHeight || 640));
+}
+
+function updateViewportSizeVars() {
+  const height = viewportHeight();
+  const width = viewportWidth();
+  document.documentElement.style.setProperty("--app-height", height + "px");
+  document.documentElement.style.setProperty("--app-width", width + "px");
+  if (game) {
+    game.style.width = width + "px";
+    game.style.height = height + "px";
+    game.style.maxHeight = height + "px";
+  }
+}
+
+function overlayIsVisible() {
+  return !!(overlay && overlay.style.display && overlay.style.display !== "none");
+}
+
+function levelEndOverlayActive() {
+  return !!(state.running && (state.nextReady || state.levelCompleteShown || state.completingLevel));
+}
+
+function restoreLevelCompleteIfNeeded() {
+  if (!levelEndOverlayActive()) return false;
+
+  state.paused = true;
+  const overlayText = overlay ? (overlay.textContent || "") : "";
+  if (!overlayIsVisible() || overlayText.includes("Screen Rotated") || overlayText.includes("Game Paused")) {
+    showLevelComplete();
+  }
+  return true;
+}
+
+function refreshViewportLayout() {
+  updateViewportSizeVars();
+  initStarfield();
+  resizeGameOverCanvas();
+  updatePointer(state.pointerX || viewportWidth() / 2, state.pointerY || viewportHeight() / 2);
+  updateUI();
+}
+
+function shouldPauseForViewportChange() {
+  if (!state.running || state.gameOverShown) return false;
+  if (restoreLevelCompleteIfNeeded()) return false;
+  if (performance.now() < (state.ignoreViewportPauseUntil || 0)) return false;
+  if (overlayIsVisible()) return false;
+  return true;
+}
+
 function pauseForInterruption(title = "Game Paused", detail = "The screen changed, rotated, or was locked. Gameplay is paused so you do not lose by accident.") {
+  if (state.running) saveCheckpoint("interruption");
   if (!state.running || state.nextReady || state.gameOverShown) return;
   if (overlay.style.display && overlay.style.display !== "none") return;
 
@@ -4164,6 +4855,8 @@ function pauseForInterruption(title = "Game Paused", detail = "The screen change
 }
 
 window.resumeAfterInterruption = function() {
+  refreshViewportLayout();
+  if (restoreLevelCompleteIfNeeded()) return;
   overlay.style.display = "none";
   state.paused = false;
   setPauseButtonNormal();
@@ -4173,28 +4866,40 @@ window.resumeAfterInterruption = function() {
 
 
 function pauseForRotation() {
-  if (!state.running) return;
+  refreshViewportLayout();
+  if (!shouldPauseForViewportChange()) return;
   state.paused = true;
   setPauseButtonNormal();
+  overlay.style.background = "rgba(0,0,0,.58)";
   overlay.style.display = "grid";
   overlay.innerHTML = `
     <div class="card">
       <h1>Screen Rotated</h1>
       <p>
-        Game paused. Landscape gives a wider field. Falling speed scales with screen height,
+        Game paused. Landscape gives a wider field. Falling speed scales with the visible screen height,
         so portrait does not get an unfair advantage.
       </p>
-      <button onclick="resumeAfterRotation()">Resume</button>
+      <div class="button-row">
+        <button onclick="resumeAfterRotation()">Resume</button>
+      </div>
     </div>
   `;
 }
 
 window.resumeAfterRotation = function() {
+  refreshViewportLayout();
+  if (restoreLevelCompleteIfNeeded()) return;
+
   overlay.style.display = "none";
   state.paused = false;
   setPauseButtonNormal();
   state.lastTime = performance.now();
+  state.ignoreViewportPauseUntil = performance.now() + 900;
   resetActiveTimer();
+
+  if (state.running && !state.nextReady && state.spawned === 0 && state.objects.length === 0) {
+    state.spawnTimer = Math.max(state.spawnTimer, spawnInterval());
+  }
 };
 
 function loop(now) {
@@ -4202,6 +4907,8 @@ function loop(now) {
 
   const dt = Math.min((now - state.lastTime) / 1000, .033);
   state.lastTime = now;
+  accumulateActiveTime(now);
+  periodicAutoSave(now);
 
   if (!state.paused) {
     state.spawnTimer += dt * 1000;
@@ -4291,10 +4998,32 @@ ui.pauseBtn.addEventListener("click", () => {
 
 ui.nextBtn.addEventListener("click", () => {});
 
-window.addEventListener("orientationchange", () => setTimeout(pauseForRotation, 250));
+let resizeTimer;
+
+function handleViewportChange(pauseActiveGame = false, delay = 140) {
+  clearTimeout(resizeTimer);
+  updateViewportSizeVars();
+  resizeTimer = setTimeout(() => {
+    refreshViewportLayout();
+    if (restoreLevelCompleteIfNeeded()) return;
+    state.lastTime = performance.now();
+    resetActiveTimer();
+    if (pauseActiveGame && state.running && shouldPauseForViewportChange()) pauseForRotation();
+  }, delay);
+}
+
+window.addEventListener("orientationchange", () => handleViewportChange(true, 260));
+window.addEventListener("resize", () => handleViewportChange(false, 120));
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", () => handleViewportChange(false, 90));
+  window.visualViewport.addEventListener("scroll", () => handleViewportChange(false, 90));
+}
+
 document.addEventListener("visibilitychange", () => {
   if (document.hidden) {
     pauseForInterruption("Game Paused", "The screen was hidden, locked, or switched away. Gameplay is paused so you do not lose by accident.");
+  } else {
+    handleViewportChange(false, 90);
   }
 });
 
@@ -4306,22 +5035,18 @@ window.addEventListener("pagehide", () => {
   pauseForInterruption("Game Paused", "The page was hidden. Gameplay is paused so you do not lose by accident.");
 });
 
-
-let resizeTimer;
-window.addEventListener("resize", () => {
-  clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => {
-    initStarfield();
-    resizeGameOverCanvas();
-    if (state.running) pauseForRotation();
-  }, 320);
+window.addEventListener("beforeunload", () => {
+  saveCheckpoint("beforeunload");
 });
 
 window.startGame = startGame;
 window.openShop = openShop;
 
+updateViewportSizeVars();
 initStarfield();
+resizeGameOverCanvas();
 updateUI();
+renderTitleScreen();
 </script>
 </body>
 </html>
