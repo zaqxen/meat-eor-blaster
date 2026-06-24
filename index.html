@@ -1901,6 +1901,319 @@ const state = {
 let ufoDrops = [];
 
 
+const SFX_FILES = {
+  explosion: "EXPLODE_freesound_community-explosion-sfx-43814.mp3",
+  ufo: "UFO_universfield-cinematic-impact-boom-03-294435.mp3",
+  bomb: "BOMB_dragon-studio-cinematic-boom-405463.mp3"
+};
+
+const SFX_SETTINGS = {
+  explosion: {
+    volume: 0.34,
+    cooldownMs: 120,
+    sameSpotCooldownMs: 190,
+    sameSpotRadius: 72,
+    maxActive: 3,
+    activeMs: 560
+  },
+  ufo: {
+    volume: 0.5,
+    cooldownMs: 900,
+    maxActive: 1,
+    activeMs: 1700,
+    priorityBlockMs: 1450
+  },
+  bomb: {
+    volume: 0.62,
+    cooldownMs: 1200,
+    maxActive: 1,
+    activeMs: 1900,
+    priorityBlockMs: 1900
+  }
+};
+
+const sfxState = {
+  ctx: null,
+  unlocked: false,
+  preloadStarted: false,
+  forceHtmlFallback: false,
+  buffers: {},
+  loading: {},
+  htmlPools: {},
+  active: { explosion: 0, ufo: 0, bomb: 0 },
+  sources: { explosion: new Set(), ufo: new Set(), bomb: new Set() },
+  lastPlayed: { explosion: 0, ufo: 0, bomb: 0 },
+  lastExplosionSpot: { x: -9999, y: -9999, at: 0 },
+  priorityBlockUntil: 0
+};
+
+function browserSupportsWebAudio() {
+  return !!(window.AudioContext || window.webkitAudioContext);
+}
+
+function getSfxContext() {
+  if (!browserSupportsWebAudio()) return null;
+  if (!sfxState.ctx) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    sfxState.ctx = new AudioContextClass();
+  }
+  return sfxState.ctx;
+}
+
+function unlockSfx() {
+  sfxState.unlocked = true;
+  const ctx = getSfxContext();
+  if (ctx && ctx.state === "suspended") {
+    ctx.resume().catch(() => {});
+  }
+
+  preloadSfxFiles();
+  unlockHtmlSfxFallback();
+}
+
+function preloadSfxFiles() {
+  if (sfxState.preloadStarted) return;
+  sfxState.preloadStarted = true;
+
+  Object.keys(SFX_FILES).forEach(kind => {
+    prepareHtmlSfxPool(kind);
+    loadSfxBuffer(kind).catch(() => {});
+  });
+}
+
+function decodeSfxAudio(ctx, arrayBuffer) {
+  return new Promise((resolve, reject) => {
+    const done = buffer => buffer ? resolve(buffer) : reject(new Error("Empty audio buffer"));
+    const fail = err => reject(err || new Error("Audio decode failed"));
+    try {
+      const maybePromise = ctx.decodeAudioData(arrayBuffer.slice(0), done, fail);
+      if (maybePromise && typeof maybePromise.then === "function") {
+        maybePromise.then(done).catch(fail);
+      }
+    } catch (err) {
+      fail(err);
+    }
+  });
+}
+
+function loadSfxBuffer(kind) {
+  if (sfxState.buffers[kind]) return Promise.resolve(sfxState.buffers[kind]);
+  if (sfxState.loading[kind]) return sfxState.loading[kind];
+
+  const ctx = getSfxContext();
+  const src = SFX_FILES[kind];
+  if (!ctx || !src || sfxState.forceHtmlFallback) {
+    return Promise.reject(new Error("Web Audio unavailable"));
+  }
+
+  sfxState.loading[kind] = fetch(src, { cache: "force-cache" })
+    .then(response => {
+      if (!response.ok) throw new Error("Sound file not found: " + src);
+      return response.arrayBuffer();
+    })
+    .then(arrayBuffer => decodeSfxAudio(ctx, arrayBuffer))
+    .then(buffer => {
+      sfxState.buffers[kind] = buffer;
+      return buffer;
+    })
+    .catch(err => {
+      /*
+        If the HTML is opened directly as file://, some browsers block fetch() for
+        neighbouring files. Fall back to pooled HTMLAudioElement playback, which
+        still works when the MP3 files are in the same folder as this HTML file.
+      */
+      sfxState.forceHtmlFallback = true;
+      throw err;
+    })
+    .finally(() => {
+      delete sfxState.loading[kind];
+    });
+
+  return sfxState.loading[kind];
+}
+
+function prepareHtmlSfxPool(kind) {
+  if (sfxState.htmlPools[kind]) return sfxState.htmlPools[kind];
+  const src = SFX_FILES[kind];
+  const size = kind === "explosion" ? 4 : 2;
+  const pool = [];
+
+  for (let i = 0; i < size; i++) {
+    const audio = new Audio(src);
+    audio.preload = "auto";
+    audio.volume = SFX_SETTINGS[kind]?.volume ?? 0.45;
+    audio.load();
+    pool.push(audio);
+  }
+
+  sfxState.htmlPools[kind] = pool;
+  return pool;
+}
+
+function unlockHtmlSfxFallback() {
+  Object.keys(SFX_FILES).forEach(kind => {
+    const pool = prepareHtmlSfxPool(kind);
+    const audio = pool[0];
+    if (!audio || audio.dataset.unlocked === "1") return;
+    audio.dataset.unlocked = "1";
+
+    try {
+      audio.muted = true;
+      const attempt = audio.play();
+      if (attempt && typeof attempt.then === "function") {
+        attempt.then(() => {
+          audio.pause();
+          audio.currentTime = 0;
+          audio.muted = false;
+        }).catch(() => {
+          audio.muted = false;
+        });
+      } else {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.muted = false;
+      }
+    } catch (err) {
+      audio.muted = false;
+    }
+  });
+}
+
+function canPlaySfx(kind, options = {}) {
+  const now = performance.now();
+  const settings = SFX_SETTINGS[kind];
+  if (!settings) return false;
+
+  if (kind === "explosion" && now < sfxState.priorityBlockUntil && !options.force) return false;
+  if (now - (sfxState.lastPlayed[kind] || 0) < settings.cooldownMs && !options.force) return false;
+  if ((sfxState.active[kind] || 0) >= settings.maxActive && !options.force) return false;
+
+  if (kind === "explosion" && Number.isFinite(options.x) && Number.isFinite(options.y)) {
+    const spot = sfxState.lastExplosionSpot;
+    const nearSameSpot = Math.hypot(options.x - spot.x, options.y - spot.y) <= settings.sameSpotRadius;
+    if (nearSameSpot && now - spot.at < settings.sameSpotCooldownMs && !options.force) return false;
+    sfxState.lastExplosionSpot = { x: options.x, y: options.y, at: now };
+  }
+
+  sfxState.lastPlayed[kind] = now;
+  return true;
+}
+
+function trackSfxPlayback(kind, source, activeMs) {
+  sfxState.active[kind] = (sfxState.active[kind] || 0) + 1;
+  let cleaned = false;
+
+  const cleanup = () => {
+    if (cleaned) return;
+    cleaned = true;
+    sfxState.active[kind] = Math.max(0, (sfxState.active[kind] || 0) - 1);
+    if (source && sfxState.sources[kind]) sfxState.sources[kind].delete(source);
+  };
+
+  if (source && sfxState.sources[kind]) sfxState.sources[kind].add(source);
+  setTimeout(cleanup, activeMs + 120);
+  return cleanup;
+}
+
+function playSfxBuffer(kind, buffer, volume) {
+  const ctx = getSfxContext();
+  if (!ctx || !buffer) return;
+
+  const source = ctx.createBufferSource();
+  const gain = ctx.createGain();
+  gain.gain.value = volume;
+  source.buffer = buffer;
+  source.connect(gain);
+  gain.connect(ctx.destination);
+
+  const cleanup = trackSfxPlayback(kind, source, SFX_SETTINGS[kind].activeMs);
+  source.onended = cleanup;
+
+  try {
+    source.start(0);
+  } catch (err) {
+    cleanup();
+  }
+}
+
+function playHtmlSfx(kind, volume) {
+  const pool = prepareHtmlSfxPool(kind);
+  let audio = pool.find(item => item.paused || item.ended);
+  if (!audio) audio = pool[0];
+  if (!audio) return;
+
+  try {
+    audio.pause();
+    audio.currentTime = 0;
+    audio.volume = volume;
+
+    const cleanup = trackSfxPlayback(kind, null, SFX_SETTINGS[kind].activeMs);
+    audio.addEventListener("ended", cleanup, { once: true });
+
+    const started = audio.play();
+    if (started && typeof started.catch === "function") {
+      started.catch(() => cleanup());
+    }
+  } catch (err) {}
+}
+
+function stopSfxKind(kind) {
+  if (sfxState.sources[kind]) {
+    [...sfxState.sources[kind]].forEach(source => {
+      try { source.stop(0); } catch (err) {}
+    });
+    sfxState.sources[kind].clear();
+  }
+
+  const pool = sfxState.htmlPools[kind] || [];
+  pool.forEach(audio => {
+    try {
+      audio.pause();
+      audio.currentTime = 0;
+    } catch (err) {}
+  });
+
+  sfxState.active[kind] = 0;
+}
+
+function stopLowerPrioritySfx(kind) {
+  if (kind === "bomb") {
+    stopSfxKind("explosion");
+    stopSfxKind("ufo");
+    return;
+  }
+
+  if (kind === "ufo") {
+    stopSfxKind("explosion");
+  }
+}
+
+function playGameSfx(kind, options = {}) {
+  const settings = SFX_SETTINGS[kind];
+  if (!settings) return;
+
+  unlockSfx();
+  if (!canPlaySfx(kind, options)) return;
+
+  if (settings.priorityBlockMs) {
+    sfxState.priorityBlockUntil = Math.max(sfxState.priorityBlockUntil, performance.now() + settings.priorityBlockMs);
+    stopLowerPrioritySfx(kind);
+  }
+
+  const scale = Number.isFinite(options.scale) ? Math.max(0.35, Math.min(1, options.scale)) : 1;
+  const volume = Math.max(0, Math.min(1, settings.volume * scale));
+
+  if (sfxState.forceHtmlFallback || !browserSupportsWebAudio()) {
+    playHtmlSfx(kind, volume);
+    return;
+  }
+
+  loadSfxBuffer(kind)
+    .then(buffer => playSfxBuffer(kind, buffer, volume))
+    .catch(() => playHtmlSfx(kind, volume));
+}
+
+
 const SAVE_VERSION = 2;
 const SAVE_KEY = "meatEorBlaster.checkpoint.v2";
 const SAVE_MIRROR_KEY = "meatEorBlaster.checkpoint.mirror.v2";
@@ -2323,6 +2636,7 @@ window.clearSaveAndRenderTitle = function() {
 };
 
 window.continueSavedGame = function() {
+  unlockSfx();
   const saved = readSavedCheckpoint();
   if (!saved.payload) {
     renderTitleScreen();
@@ -2761,6 +3075,7 @@ window.showHelp = function(source = "title") {
         <div><strong>🎰 Slot Machine Drop</strong><br>Near the end of a level-30+ UFO visit, a slot machine can drop. If it reaches the ground, it steals a random 100-1000 credits. Finish the level before UFO droppings land to clear them safely.</div>
         <div><strong>❌ Miss Tap Marker</strong><br>If you tap empty space instead of a meat-eor, meteor, bomb, or UFO, a tiny red crosshair appears exactly where you tapped to show the missed click.</div>
         <div><strong>💾 Local Save</strong><br>The browser saves your checkpoint locally. Continue starts cleanly without live falling objects. Credits, score, lives, upgrades, missed targets, and missed UFOs already recorded are kept and do not roll back. Edited saves are blocked by an integrity check. The final result also shows how many times a saved run was continued, including danger continues when the last saved falling target was close to the ground.</div>
+        <div><strong>🔊 Sound Effects</strong><br>Place the three MP3 files in the same folder as this HTML. The game uses cached explosion sounds for normal meat-eor/meteor blasts, the UFO reward explosion, and bomb game-over explosions. Normal blasts are throttled so Multi-Missile does not spam audio.</div>
         <div><strong>Multi-Missile Tap</strong><br>For meteors: lets you tap the same locked target multiple times, launching more rockets. For UFOs: each tap removes shields equal to your Multi-Missile level. Mobile multi-touch is allowed, so be careful near bombs.</div>
         <div><strong>Starter Explosion</strong><br>Your starter pack includes a white expanding circle so you can see the current blast radius.</div>
         <div><strong>Rocket Size</strong><br>Increases blast radius and unlocks grander explosion effects.</div>
@@ -2778,6 +3093,7 @@ window.backToTitle = function() {
 };
 
 function startGame(hardMode = false) {
+  unlockSfx();
   clearField();
   stopGameOverFireworks();
   document.body.classList.toggle("hard-mode", !!hardMode);
@@ -2896,6 +3212,7 @@ function showBombWarning() {
   `;
 }
 window.continueAfterBombWarning = function() {
+  unlockSfx();
   overlay.style.display = "none";
   state.paused = false;
   setPauseButtonNormal();
@@ -3210,14 +3527,15 @@ function applyBlastDamage(x, y) {
     const cy = obj.frozen ? obj.lockedY : obj.y + obj.size / 2;
     if (Math.hypot(cx - x, cy - y) <= radius) {
       destroyObject(obj, true);
-      createExplosion(cx, cy, 0.55);
+      createExplosion(cx, cy, 0.55, false);
     }
   });
 }
 
-function createExplosion(x, y, scale = 1) {
+function createExplosion(x, y, scale = 1, playSound = true) {
   const effect = currentEffect();
   if (!effect) return;
+  if (playSound) playGameSfx("explosion", { x, y, scale });
 
   const wrap = document.createElement("div");
   wrap.className = "explosion";
@@ -3733,6 +4051,7 @@ function createHitSpark(x, y) {
 
 function specialUfoExplosion(x, y, ufo) {
   state.paused = true;
+  playGameSfx("ufo", { force: true });
   createMeatExplosion(x, y);
 
   if (ufo && ufo.el && document.body.contains(ufo.el)) ufo.el.remove();
@@ -3772,6 +4091,7 @@ function specialUfoExplosion(x, y, ufo) {
 }
 
 window.continueAfterUfo = function() {
+  unlockSfx();
   overlay.style.display = "none";
 
   checkCompletionFailsafe(0, true);
@@ -4399,6 +4719,7 @@ function triggerBombGameOver() {
     return;
   }
 
+  playGameSfx("bomb", { force: true });
   const boom = document.createElement("div");
   boom.className = "screen-boom";
   game.appendChild(boom);
@@ -4887,6 +5208,7 @@ function pauseForRotation() {
 }
 
 window.resumeAfterRotation = function() {
+  unlockSfx();
   refreshViewportLayout();
   if (restoreLevelCompleteIfNeeded()) return;
 
@@ -4964,6 +5286,10 @@ function handleTouchMultiTap(e) {
   }
 }
 
+
+window.addEventListener("pointerdown", unlockSfx, { capture: true, passive: true });
+window.addEventListener("touchstart", unlockSfx, { capture: true, passive: true });
+window.addEventListener("keydown", unlockSfx, { capture: true });
 
 game.addEventListener("pointermove", e => updatePointer(e.clientX, e.clientY));
 game.addEventListener("pointerdown", e => {
